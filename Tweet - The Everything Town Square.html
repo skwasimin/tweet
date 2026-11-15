@@ -1,0 +1,3285 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="lights-out">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Home / Tweet</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* ==========================================================================
+       EXACT TWITTER WEB (CHIRP / SYSTEM) DESIGN TOKENS
+       ========================================================================== */
+    :root,
+    [data-theme="lights-out"] {
+      --bg: #000000;
+      --bg-glass: rgba(0, 0, 0, 0.65);
+      --bg-secondary: #16181c;
+      --bg-search: #202327;
+      --bg-hover: rgba(255, 255, 255, 0.03);
+      --bg-hover-strong: rgba(231, 233, 234, 0.1);
+      --bg-modal: rgba(91, 112, 131, 0.4);
+      --text: #e7e9ea;
+      --text-muted: #71767b;
+      --border: #2f3336;
+      --btn-inverse-bg: #eff3f4;
+      --btn-inverse-text: #0f1419;
+      --btn-inverse-hover: #d7dbdc;
+      --accent: #1d9bf0;
+      --accent-hover: #1a8cd8;
+      --accent-soft: rgba(29, 155, 240, 0.1);
+    }
+
+    [data-theme="dim"] {
+      --bg: #15202b;
+      --bg-glass: rgba(21, 32, 43, 0.75);
+      --bg-secondary: #1e2732;
+      --bg-search: #273340;
+      --bg-hover: rgba(255, 255, 255, 0.03);
+      --bg-hover-strong: rgba(247, 249, 249, 0.1);
+      --bg-modal: rgba(91, 112, 131, 0.4);
+      --text: #f7f9f9;
+      --text-muted: #8b98a5;
+      --border: #38444d;
+      --btn-inverse-bg: #f7f9f9;
+      --btn-inverse-text: #0f1419;
+      --btn-inverse-hover: #d7dbdc;
+    }
+
+    [data-theme="bright"] {
+      --bg: #ffffff;
+      --bg-glass: rgba(255, 255, 255, 0.85);
+      --bg-secondary: #f7f9f9;
+      --bg-search: #eff3f4;
+      --bg-hover: rgba(15, 20, 25, 0.03);
+      --bg-hover-strong: rgba(15, 20, 25, 0.1);
+      --bg-modal: rgba(0, 0, 0, 0.4);
+      --text: #0f1419;
+      --text-muted: #536471;
+      --border: #eff3f4;
+      --btn-inverse-bg: #0f1419;
+      --btn-inverse-text: #ffffff;
+      --btn-inverse-hover: #272c30;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-size: 15px;
+      line-height: 20px;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    /* Hairline Borders & Surfaces */
+    .tw-border { border-color: var(--border); }
+    .tw-bg { background-color: var(--bg); }
+    .tw-bg-secondary { background-color: var(--bg-secondary); }
+    .tw-bg-search { background-color: var(--bg-search); }
+    .tw-text { color: var(--text); }
+    .tw-muted { color: var(--text-muted); }
+    .tw-accent { color: var(--accent); }
+    .tw-btn-primary {
+      background-color: var(--accent);
+      color: #ffffff;
+      transition: background-color 0.15s ease;
+    }
+    .tw-btn-primary:hover:not(:disabled) {
+      background-color: var(--accent-hover);
+    }
+    .tw-btn-primary:disabled {
+      opacity: 0.5;
+      cursor: default;
+    }
+    .tw-btn-inverse {
+      background-color: var(--btn-inverse-bg);
+      color: var(--btn-inverse-text);
+      transition: background-color 0.15s ease;
+    }
+    .tw-btn-inverse:hover {
+      background-color: var(--btn-inverse-hover);
+    }
+
+    /* Sticky Blurred Header */
+    .tw-sticky-header {
+      background-color: var(--bg-glass);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+
+    /* Interactive Row & Nav Hovers */
+    .tw-row-hover {
+      transition: background-color 0.15s ease;
+    }
+    .tw-row-hover:hover {
+      background-color: var(--bg-hover);
+    }
+    .tw-pill-hover {
+      transition: background-color 0.15s ease;
+    }
+    .tw-pill-hover:hover {
+      background-color: var(--bg-hover-strong);
+    }
+
+    /* Authentic Follow / Following -> Unfollow Red Hover Button */
+    .tw-following-btn {
+      border: 1px solid var(--border);
+      color: var(--text);
+      background: transparent;
+      transition: all 0.15s ease;
+    }
+    .tw-following-btn .unfollow-label { display: none; }
+    .tw-following-btn:hover {
+      border-color: rgba(244, 33, 46, 0.5);
+      background-color: rgba(244, 33, 46, 0.1);
+      color: #f4212e;
+    }
+    .tw-following-btn:hover .following-label { display: none; }
+    .tw-following-btn:hover .unfollow-label { display: inline; }
+
+    /* Tweet Action Bar Icon Colors */
+    .act-reply:hover { color: #1d9bf0; }
+    .act-reply:hover .act-circle { background-color: rgba(29, 155, 240, 0.1); }
+
+    .act-retweet:hover, .act-retweet.is-active { color: #00ba7c; }
+    .act-retweet:hover .act-circle { background-color: rgba(0, 186, 124, 0.1); }
+
+    .act-like:hover, .act-like.is-active { color: #f91880; }
+    .act-like:hover .act-circle { background-color: rgba(249, 24, 128, 0.1); }
+
+    .act-blue:hover, .act-blue.is-active { color: #1d9bf0; }
+    .act-blue:hover .act-circle { background-color: rgba(29, 155, 240, 0.1); }
+
+    @keyframes heartPop {
+      0% { transform: scale(1); }
+      35% { transform: scale(1.35); }
+      70% { transform: scale(0.92); }
+      100% { transform: scale(1); }
+    }
+    .heart-pop {
+      animation: heartPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    /* Subtle Scrollbars */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 9999px; }
+
+    textarea:focus, input:focus { outline: none; }
+  </style>
+</head>
+<body>
+
+  <!-- ==========================================================================
+       AUTHENTIC TWITTER WEB 3-COLUMN SHELL
+       ========================================================================== -->
+  <div class="max-w-[1265px] mx-auto flex justify-center min-h-screen">
+
+    <!-- ========================================================================
+         LEFT HEADER / NAVIGATION RAIL (Desktop 275px / Tablet 88px)
+         ======================================================================== -->
+    <header class="hidden sm:flex flex-col justify-between w-[68px] xl:w-[275px] shrink-0 px-2 sticky top-0 h-screen select-none z-30">
+      <div class="flex flex-col items-center xl:items-start">
+        <!-- Top Bird Logo -->
+        <div class="py-0.5">
+          <button onclick="navigate('home')" class="w-[50px] h-[50px] rounded-full tw-pill-hover flex items-center justify-center" aria-label="Tweet">
+            <svg viewBox="0 0 24 24" class="w-[30px] h-[30px]" style="fill: var(--accent);">
+              <path d="M23.643 4.937c-.835.37-1.732.62-2.675.733.962-.576 1.7-1.49 2.048-2.578-.9.534-1.897.922-2.958 1.13-.85-.904-2.06-1.47-3.4-1.47-2.572 0-4.658 2.086-4.658 4.66 0 .364.042.718.12 1.06-3.873-.195-7.304-2.05-9.602-4.868-.4.69-.63 1.49-.63 2.342 0 1.616.823 3.043 2.072 3.878-.764-.025-1.482-.234-2.11-.583v.06c0 2.257 1.605 4.14 3.737 4.568-.392.106-.803.162-1.227.162-.3 0-.593-.028-.877-.082.593 1.85 2.313 3.198 4.352 3.234-1.595 1.25-3.604 1.995-5.786 1.995-.376 0-.747-.022-1.112-.065 2.062 1.323 4.51 2.093 7.14 2.093 8.57 0 13.255-7.098 13.255-13.254 0-.2-.005-.402-.014-.602.91-.658 1.7-1.477 2.323-2.41z"></path>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Primary Navigation Items -->
+        <nav id="desktop-nav" class="w-full flex flex-col items-center xl:items-start space-y-0.5"></nav>
+
+        <!-- Primary Tweet CTA Button -->
+        <button onclick="openComposeModal()" class="mt-2 w-[50px] h-[50px] xl:w-[90%] xl:h-[52px] rounded-full tw-btn-primary font-bold text-[17px] flex items-center justify-center shadow-sm">
+          <span class="hidden xl:inline">Tweet</span>
+          <svg viewBox="0 0 24 24" class="w-6 h-6 fill-current xl:hidden">
+            <path d="M23 3c-6.62-.1-10.38 2.421-13.05 6.03C7.29 12.61 6 17.331 6 22h2c0-1.007.07-2.012.19-3H12c4.1 0 7.48-3.082 7.94-7.054C22.79 10.147 23.17 6.359 23 3zm-7 8h-1.5v2H16c.63-.016 1.2-.08 1.72-.188C16.95 15.24 14.68 17 12 17H8.55c.57-2.512 1.57-4.851 3-6.78 2.16-2.912 5.29-4.911 9.45-5.187C20.95 8.079 19.9 11 16 11zM4 9V6H1V4h3V1h2v3h3v2H6v3H4z"></path>
+          </svg>
+        </button>
+      </div>
+
+      <!-- Logged-in Account Switcher Pill (@skwasim) -->
+      <div class="my-3 w-full">
+        <div onclick="openProfile('skwasim')" class="p-3 rounded-full tw-pill-hover flex items-center justify-between cursor-pointer">
+          <div class="flex items-center gap-3 min-w-0">
+            <div id="nav-user-avatar" class="shrink-0"></div>
+            <div class="hidden xl:block min-w-0 leading-5">
+              <div class="flex items-center gap-1 font-bold text-[15px] truncate">
+                <span id="nav-user-name" class="truncate">Sk Wasim</span>
+                <span id="nav-user-badges" class="inline-flex items-center gap-1 shrink-0"></span>
+              </div>
+              <div class="text-[15px] tw-muted truncate">@skwasim</div>
+            </div>
+          </div>
+          <svg viewBox="0 0 24 24" class="w-[18.75px] h-[18.75px] fill-current tw-text hidden xl:block shrink-0">
+            <path d="M3 12c0-1.1.9-2 2-2s2 .9 2 2-.9 2-2 2-2-.9-2-2zm9 2c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm7 0c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z"></path>
+          </svg>
+        </div>
+      </div>
+    </header>
+
+    <!-- ========================================================================
+         CENTER PRIMARY COLUMN (600px standard, or 990px wide when in Messages)
+         ======================================================================== -->
+    <main id="center-column" class="w-full max-w-[600px] min-h-screen border-x tw-border pb-16 sm:pb-0"></main>
+
+    <!-- ========================================================================
+         RIGHT SIDEBAR COLUMN (350px on Desktop, hidden when Messages is expanded)
+         ======================================================================== -->
+    <aside id="right-column" class="hidden lg:block w-[350px] shrink-0 ml-[30px] mr-[10px] pb-12">
+      <!-- Sticky Search Bar -->
+      <div class="sticky top-0 pt-1.5 pb-3 tw-bg z-20">
+        <div class="relative flex items-center w-full h-[42px] rounded-full tw-bg-search border border-transparent focus-within:border-[var(--accent)] focus-within:bg-[var(--bg)]">
+          <svg viewBox="0 0 24 24" class="w-[18.75px] h-[18.75px] ml-4 fill-current tw-muted shrink-0">
+            <path d="M10.25 3.75c-3.59 0-6.5 2.91-6.5 6.5s2.91 6.5 6.5 6.5c1.795 0 3.419-.726 4.596-1.904 1.178-1.177 1.904-2.801 1.904-4.596 0-3.59-2.91-6.5-6.5-6.5zm-8.5 6.5c0-4.694 3.806-8.5 8.5-8.5s8.5 3.806 8.5 8.5c0 1.986-.682 3.815-1.824 5.262l4.781 4.781-1.414 1.414-4.781-4.781c-1.447 1.142-3.276 1.824-5.262 1.824-4.694 0-8.5-3.806-8.5-8.5z"></path>
+          </svg>
+          <input
+            id="sidebar-search-input"
+            type="text"
+            placeholder="Search"
+            onkeydown="if(event.key==='Enter'){runSearch(this.value)}"
+            class="w-full bg-transparent px-3 text-[15px] tw-text placeholder:tw-muted"
+          />
+        </div>
+      </div>
+
+      <div class="space-y-4">
+        <!-- What's happening (Authentic Twitter Rounded-2xl Secondary Card) -->
+        <section class="rounded-2xl tw-bg-secondary overflow-hidden border tw-border">
+          <h2 class="px-4 pt-3 pb-2 font-extrabold text-[20px] leading-6">What’s happening</h2>
+          <div id="right-trends"></div>
+          <button onclick="navigate('explore')" class="w-full text-left px-4 py-3.5 text-[15px] tw-accent tw-row-hover">
+            Show more
+          </button>
+        </section>
+
+        <!-- Who to follow -->
+        <section class="rounded-2xl tw-bg-secondary overflow-hidden border tw-border">
+          <h2 class="px-4 pt-3 pb-2 font-extrabold text-[20px] leading-6">Who to follow</h2>
+          <div id="right-who-to-follow"></div>
+          <button onclick="openFollowList('skwasim', 'suggested')" class="w-full text-left px-4 py-3.5 text-[15px] tw-accent tw-row-hover">
+            Show more
+          </button>
+        </section>
+
+        <!-- Standard Twitter Footer Links -->
+        <footer class="px-4 text-[13px] leading-4 tw-muted space-y-1">
+          <div class="flex flex-wrap gap-x-3 gap-y-1">
+            <a href="javascript:void(0)" onclick="openDisplayModal()" class="hover:underline">Display</a>
+            <a href="javascript:void(0)" onclick="navigate('monetization')" class="hover:underline">Creator Revenue</a>
+            <a href="javascript:void(0)" onclick="navigate('wasimai')" class="hover:underline">WasimAI</a>
+            <a href="javascript:void(0)" onclick="resetDemoState()" class="hover:underline">Reset Demo</a>
+          </div>
+          <div>© 2026 Tweet Corp.</div>
+        </footer>
+      </div>
+    </aside>
+  </div>
+
+  <!-- ==========================================================================
+       MOBILE BOTTOM BAR & FLOATING COMPOSE BUTTON (<640px)
+       ========================================================================== -->
+  <nav id="mobile-nav" class="sm:hidden fixed bottom-0 inset-x-0 h-[53px] tw-bg border-t tw-border flex items-center justify-around z-40"></nav>
+
+  <button onclick="openComposeModal()" class="sm:hidden fixed bottom-[68px] right-4 w-14 h-14 rounded-full tw-btn-primary shadow-lg flex items-center justify-center z-40">
+    <svg viewBox="0 0 24 24" class="w-6 h-6 fill-current">
+      <path d="M23 3c-6.62-.1-10.38 2.421-13.05 6.03C7.29 12.61 6 17.331 6 22h2c0-1.007.07-2.012.19-3H12c4.1 0 7.48-3.082 7.94-7.054C22.79 10.147 23.17 6.359 23 3zm-7 8h-1.5v2H16c.63-.016 1.2-.08 1.72-.188C16.95 15.24 14.68 17 12 17H8.55c.57-2.512 1.57-4.851 3-6.78 2.16-2.912 5.29-4.911 9.45-5.187C20.95 8.079 19.9 11 16 11zM4 9V6H1V4h3V1h2v3h3v2H6v3H4z"></path>
+    </svg>
+  </button>
+
+  <!-- ==========================================================================
+       MODAL CONTAINER (COMPOSE, QUOTE/REPLY, DISPLAY, EDIT PROFILE, ANALYTICS)
+       ========================================================================== -->
+  <div id="modal-root" onclick="if(event.target===this)closeModal()" class="fixed inset-0 hidden items-start justify-center pt-0 sm:pt-[5vh] z-50" style="background-color: var(--bg-modal);">
+    <div id="modal-box" class="w-full h-full sm:h-auto sm:max-w-[600px] sm:rounded-2xl tw-bg border tw-border shadow-2xl overflow-hidden sm:max-h-[90vh] flex flex-col"></div>
+  </div>
+
+  <!-- Subtle Bottom Toast (Authentic Twitter Blue Pill) -->
+  <div id="toast-root" class="fixed bottom-16 sm:bottom-5 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center gap-2 pointer-events-none"></div>
+
+  <!-- ==========================================================================
+       APPLICATION LOGIC & DATA
+       ========================================================================== -->
+  <script>
+    /* ==========================================================================
+       1. EXACT TWITTER SVG ICON SET & OFFICIAL BADGES
+       ========================================================================== */
+    const SVG = {
+      bird: `<svg viewBox="0 0 24 24" class="w-6 h-6" style="fill:var(--accent)"><path d="M23.643 4.937c-.835.37-1.732.62-2.675.733.962-.576 1.7-1.49 2.048-2.578-.9.534-1.897.922-2.958 1.13-.85-.904-2.06-1.47-3.4-1.47-2.572 0-4.658 2.086-4.658 4.66 0 .364.042.718.12 1.06-3.873-.195-7.304-2.05-9.602-4.868-.4.69-.63 1.49-.63 2.342 0 1.616.823 3.043 2.072 3.878-.764-.025-1.482-.234-2.11-.583v.06c0 2.257 1.605 4.14 3.737 4.568-.392.106-.803.162-1.227.162-.3 0-.593-.028-.877-.082.593 1.85 2.313 3.198 4.352 3.234-1.595 1.25-3.604 1.995-5.786 1.995-.376 0-.747-.022-1.112-.065 2.062 1.323 4.51 2.093 7.14 2.093 8.57 0 13.255-7.098 13.255-13.254 0-.2-.005-.402-.014-.602.91-.658 1.7-1.477 2.323-2.41z"></path></svg>`,
+      verifiedBlue: `<svg viewBox="0 0 22 22" aria-label="Verified account" class="w-[18.75px] h-[18.75px] fill-[#1d9bf0] inline-block shrink-0"><path d="M20.396 11c-.018-.646-.215-1.275-.57-1.816-.354-.54-.852-.972-1.438-1.246.223-.607.27-1.264.14-1.897-.131-.634-.437-1.218-.882-1.687-.47-.445-1.053-.75-1.687-.882-.633-.13-1.29-.083-1.897.14-.273-.587-.704-1.086-1.245-1.44S11.647 1.62 11 1.604c-.646.017-1.273.213-1.813.568s-.969.854-1.24 1.44c-.608-.223-1.267-.272-1.902-.14-.635.13-1.22.436-1.69.882-.445.47-.749 1.055-.878 1.688-.13.633-.08 1.29.144 1.896-.587.274-1.087.705-1.443 1.245-.356.54-.555 1.17-.574 1.817.02.647.218 1.276.574 1.817.356.54.856.972 1.443 1.245-.224.606-.274 1.263-.144 1.896.13.634.433 1.218.877 1.688.47.443 1.054.747 1.687.878.633.132 1.29.084 1.897-.136.274.586.705 1.084 1.246 1.439.54.354 1.17.551 1.816.569.647-.016 1.276-.213 1.817-.567s.972-.854 1.245-1.44c.604.239 1.266.296 1.903.164.636-.132 1.22-.447 1.68-.907.46-.46.776-1.044.908-1.681s.075-1.299-.165-1.903c.586-.274 1.084-.705 1.439-1.246.354-.54.551-1.17.569-1.816zM9.662 14.85l-3.429-3.428 1.293-1.302 2.072 2.072 4.4-4.794 1.347 1.246z"></path></svg>`,
+      verifiedGold: `<svg viewBox="0 0 22 22" aria-label="Verified Organization" class="w-[18.75px] h-[18.75px] fill-[#e2b719] inline-block shrink-0"><path d="M20.396 11c-.018-.646-.215-1.275-.57-1.816-.354-.54-.852-.972-1.438-1.246.223-.607.27-1.264.14-1.897-.131-.634-.437-1.218-.882-1.687-.47-.445-1.053-.75-1.687-.882-.633-.13-1.29-.083-1.897.14-.273-.587-.704-1.086-1.245-1.44S11.647 1.62 11 1.604c-.646.017-1.273.213-1.813.568s-.969.854-1.24 1.44c-.608-.223-1.267-.272-1.902-.14-.635.13-1.22.436-1.69.882-.445.47-.749 1.055-.878 1.688-.13.633-.08 1.29.144 1.896-.587.274-1.087.705-1.443 1.245-.356.54-.555 1.17-.574 1.817.02.647.218 1.276.574 1.817.356.54.856.972 1.443 1.245-.224.606-.274 1.263-.144 1.896.13.634.433 1.218.877 1.688.47.443 1.054.747 1.687.878.633.132 1.29.084 1.897-.136.274.586.705 1.084 1.246 1.439.54.354 1.17.551 1.816.569.647-.016 1.276-.213 1.817-.567s.972-.854 1.245-1.44c.604.239 1.266.296 1.903.164.636-.132 1.22-.447 1.68-.907.46-.46.776-1.044.908-1.681s.075-1.299-.165-1.903c.586-.274 1.084-.705 1.439-1.246.354-.54.551-1.17.569-1.816zM9.662 14.85l-3.429-3.428 1.293-1.302 2.072 2.072 4.4-4.794 1.347 1.246z"></path></svg>`,
+      affiliateTweet: `<span onclick="event.stopPropagation(); openProfile('Tweet')" title="Affiliated with @Tweet" class="inline-flex items-center justify-center w-[16px] h-[16px] rounded-[3px] bg-[#1d9bf0] shrink-0 cursor-pointer"><svg viewBox="0 0 24 24" class="w-[11px] h-[11px] fill-white"><path d="M23.643 4.937c-.835.37-1.732.62-2.675.733.962-.576 1.7-1.49 2.048-2.578-.9.534-1.897.922-2.958 1.13-.85-.904-2.06-1.47-3.4-1.47-2.572 0-4.658 2.086-4.658 4.66 0 .364.042.718.12 1.06-3.873-.195-7.304-2.05-9.602-4.868-.4.69-.63 1.49-.63 2.342 0 1.616.823 3.043 2.072 3.878-.764-.025-1.482-.234-2.11-.583v.06c0 2.257 1.605 4.14 3.737 4.568-.392.106-.803.162-1.227.162-.3 0-.593-.028-.877-.082.593 1.85 2.313 3.198 4.352 3.234-1.595 1.25-3.604 1.995-5.786 1.995-.376 0-.747-.022-1.112-.065 2.062 1.323 4.51 2.093 7.14 2.093 8.57 0 13.255-7.098 13.255-13.254 0-.2-.005-.402-.014-.602.91-.658 1.7-1.477 2.323-2.41z"></path></svg></span>`,
+      backArrow: `<svg viewBox="0 0 24 24" class="w-5 h-5 fill-current"><path d="M7.414 13l5.043 5.04-1.414 1.42L3.586 12l7.457-7.46 1.414 1.42L7.414 11H21v2H7.414z"></path></svg>`,
+      dots: `<svg viewBox="0 0 24 24" class="w-[18.75px] h-[18.75px] fill-current"><path d="M3 12c0-1.1.9-2 2-2s2 .9 2 2-.9 2-2 2-2-.9-2-2zm9 2c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm7 0c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z"></path></svg>`,
+      pin: `<svg viewBox="0 0 24 24" class="w-4 h-4 fill-current"><path d="M7 4.5C7 3.12 8.12 2 9.5 2h5C15.88 2 17 3.12 17 4.5v5.26L20.12 16H13v5l-1 2-1-2v-5H3.88L7 9.76V4.5z"></path></svg>`,
+      globe: `<svg viewBox="0 0 24 24" class="w-4 h-4 fill-current"><path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm6.918 6h-3.215c-.338-1.475-.91-2.847-1.666-3.956A8.027 8.027 0 0118.918 8zM12 4.04c.83 1.1 1.488 2.446 1.855 3.96h-3.71c.367-1.514 1.025-2.86 1.855-3.96zM4.26 14C4.1 13.36 4 12.69 4 12s.1-1.36.26-2h3.682c-.082.656-.132 1.323-.132 2s.05 1.344.132 2H4.26zm.822 2h3.215c.338 1.475.91 2.847 1.666 3.956A8.027 8.027 0 015.082 16zm3.215-8H5.082a8.027 8.027 0 014.881-3.956C9.207 5.153 8.635 6.525 8.297 8zM12 19.96c-.83-1.1-1.488-2.446-1.855-3.96h3.71c-.367 1.514-1.025 2.86-1.855 3.96zM14.19 14H9.81c-.09-.656-.15-1.323-.15-2s.06-1.344.15-2h4.38c.09.656.15 1.323.15 2s-.06 1.344-.15 2zm-.153 5.956c.756-1.109 1.328-2.481 1.666-3.956h3.215a8.027 8.027 0 01-4.881 3.956zM16.058 14c.082-.656.132-1.323.132-2s-.05-1.344-.132-2h3.682c.16.64.26 1.31.26 2s-.1 1.36-.26 2h-3.682z"></path></svg>`,
+      reply: `<svg viewBox="0 0 24 24" class="w-[18.75px] h-[18.75px] fill-current"><path d="M1.751 10c0-4.42 3.584-8 8.005-8h4.366c4.49 0 8.129 3.64 8.129 8.13 0 2.96-1.607 5.68-4.196 7.11l-8.054 4.46v-3.69h-.067c-4.49.1-8.183-3.51-8.183-8.01zm8.005-6c-3.317 0-6.005 2.69-6.005 6 0 3.37 2.77 6.08 6.138 6.01l.351-.01h1.761v2.3l5.087-2.81c1.951-1.08 3.163-3.13 3.163-5.36 0-3.39-2.744-6.13-6.129-6.13H9.756z"></path></svg>`,
+      retweet: `<svg viewBox="0 0 24 24" class="w-[18.75px] h-[18.75px] fill-current"><path d="M4.5 3.88l4.432 4.14-1.364 1.46L5.5 7.55V16c0 1.1.896 2 2 2H13v2H7.5c-2.209 0-4-1.79-4-4V7.55L1.432 9.48.068 8.02 4.5 3.88zM16.5 6H11V4h5.5c2.209 0 4 1.79 4 4v8.45l2.068-1.93 1.364 1.46-4.432 4.14-4.432-4.14 1.364-1.46 2.068 1.93V8c0-1.1-.896-2-2-2z"></path></svg>`,
+      likeOutline: `<svg viewBox="0 0 24 24" class="w-[18.75px] h-[18.75px] fill-current"><path d="M16.697 5.5c-1.222-.06-2.679.51-3.89 2.16l-.805 1.09-.806-1.09C9.984 6.01 8.526 5.44 7.304 5.5c-1.243.07-2.349.78-2.91 1.91-.552 1.12-.633 2.78.479 4.82 1.074 1.97 3.257 4.27 7.129 6.61 3.87-2.34 6.052-4.64 7.126-6.61 1.111-2.04 1.03-3.7.477-4.82-.561-1.13-1.666-1.84-2.908-1.91zm4.187 7.69c-1.351 2.48-4.001 5.12-8.379 7.67l-.503.3-.504-.3c-4.379-2.55-7.029-5.19-8.382-7.67-1.36-2.5-1.41-4.86-.514-6.67.887-1.79 2.647-2.91 4.601-3.01 1.651-.09 3.368.56 4.798 2.01 1.429-1.45 3.146-2.1 4.796-2.01 1.954.1 3.714 1.22 4.601 3.01.896 1.81.846 4.17-.514 6.67z"></path></svg>`,
+      likeSolid: `<svg viewBox="0 0 24 24" class="w-[18.75px] h-[18.75px] fill-current heart-pop"><path d="M20.884 13.19c-1.351 2.48-4.001 5.12-8.379 7.67l-.503.3-.504-.3c-4.379-2.55-7.029-5.19-8.382-7.67-1.36-2.5-1.41-4.86-.514-6.67.887-1.79 2.647-2.91 4.601-3.01 1.651-.09 3.368.56 4.798 2.01 1.429-1.45 3.146-2.1 4.796-2.01 1.954.1 3.714 1.22 4.601 3.01.896 1.81.846 4.17-.514 6.67z"></path></svg>`,
+      views: `<svg viewBox="0 0 24 24" class="w-[18.75px] h-[18.75px] fill-current"><path d="M8.75 21V3h2v18h-2zM18 21V8.5h2V21h-2zM4 21l.004-10h2L6 21H4zm9.248 0v-7h2v7h-2z"></path></svg>`,
+      bookmarkOutline: `<svg viewBox="0 0 24 24" class="w-[18.75px] h-[18.75px] fill-current"><path d="M4 4.5C4 3.12 5.119 2 6.5 2h11C18.881 2 20 3.12 20 4.5v18.44l-8-5.71-8 5.71V4.5zM6.5 4c-.276 0-.5.22-.5.5v14.56l6-4.29 6 4.29V4.5c0-.28-.224-.5-.5-.5h-11z"></path></svg>`,
+      bookmarkSolid: `<svg viewBox="0 0 24 24" class="w-[18.75px] h-[18.75px] fill-current"><path d="M4 4.5C4 3.12 5.119 2 6.5 2h11C18.881 2 20 3.12 20 4.5v18.44l-8-5.71-8 5.71V4.5z"></path></svg>`,
+      share: `<svg viewBox="0 0 24 24" class="w-[18.75px] h-[18.75px] fill-current"><path d="M12 2.59l5.7 5.7-1.41 1.42L13 6.41V16h-2V6.41l-3.3 3.3-1.41-1.42L12 2.59zM21 15l-.02 3.51c0 1.38-1.12 2.49-2.5 2.49H5.5C4.11 21 3 19.88 3 18.5V15h2v3.5c0 .28.22.5.5.5h12.98c.28 0 .5-.22.5-.5L19 15h2z"></path></svg>`,
+      media: `<svg viewBox="0 0 24 24" class="w-5 h-5 fill-current"><path d="M3 5.5C3 4.119 4.119 3 5.5 3h13C19.881 3 21 4.119 21 5.5v13c0 1.381-1.119 2.5-2.5 2.5h-13C4.119 21 3 19.881 3 18.5v-13zM5.5 5c-.276 0-.5.224-.5.5v9.086l3-3 3 3 5-5 3 3V5.5c0-.276-.224-.5-.5-.5h-13zM19 15.414l-3-3-5 5-3-3-3 3V18.5c0 .276.224.5.5.5h13c.276 0 .5-.224.5-.5v-3.086zM9.75 7C8.784 7 8 7.784 8 8.75s.784 1.75 1.75 1.75 1.75-.784 1.75-1.75S10.716 7 9.75 7z"></path></svg>`,
+      poll: `<svg viewBox="0 0 24 24" class="w-5 h-5 fill-current"><path d="M6 5c-1.1 0-2 .895-2 2s.9 2 2 2 2-.895 2-2-.9-2-2-2zM2 7c0-2.209 1.79-4 4-4s4 1.791 4 4-1.79 4-4 4-4-1.791-4-4zm20 1H12V6h10v2zM6 15c-1.1 0-2 .895-2 2s.9 2 2 2 2-.895 2-2-.9-2-2-2zm-4 2c0-2.209 1.79-4 4-4s4 1.791 4 4-1.79 4-4 4-4-1.791-4-4zm20 1H12v-2h10v2z"></path></svg>`,
+      emoji: `<svg viewBox="0 0 24 24" class="w-5 h-5 fill-current"><path d="M8 9.5C8 8.119 8.672 7 9.5 7S11 8.119 11 9.5 10.328 12 9.5 12 8 10.881 8 9.5zm6.5 2.5c.828 0 1.5-1.119 1.5-2.5S15.328 7 14.5 7 13 8.119 13 9.5s.672 2.5 1.5 2.5zM12 16c-2.224 0-3.021-2.227-3.051-2.316l-1.897.633c.05.15 1.271 3.684 4.949 3.684s4.898-3.533 4.949-3.684l-1.896-.638c-.033.095-.83 2.322-3.053 2.322zm10.25-4.001c0 5.652-4.598 10.25-10.25 10.25S1.75 17.652 1.75 12 6.348 1.75 12 1.75 22.25 6.348 22.25 12zm-2 0c0-4.549-3.701-8.25-8.25-8.25S3.75 7.451 3.75 12s3.701 8.25 8.25 8.25 8.25-3.701 8.25-8.25z"></path></svg>`,
+      location: `<svg viewBox="0 0 24 24" class="w-[18.75px] h-[18.75px] fill-current"><path d="M12 7c-1.93 0-3.5 1.57-3.5 3.5S10.07 14 12 14s3.5-1.57 3.5-3.5S13.93 7 12 7zm0 5c-.827 0-1.5-.673-1.5-1.5S11.173 9 12 9s1.5.673 1.5 1.5S12.827 12 12 12zm0-10c-4.687 0-8.5 3.813-8.5 8.5 0 5.967 7.621 11.116 7.945 11.332l.555.37.555-.37c.324-.216 7.945-5.365 7.945-11.332C20.5 5.813 16.687 2 12 2zm0 17.77c-1.665-1.241-6.5-5.196-6.5-9.27C5.5 6.916 8.416 4 12 4s6.5 2.916 6.5 6.5c0 4.073-4.835 8.028-6.5 9.27z"></path></svg>`,
+      link: `<svg viewBox="0 0 24 24" class="w-[18.75px] h-[18.75px] fill-current"><path d="M18.36 5.64c-1.95-1.96-5.11-1.96-7.07 0L9.88 7.05 8.46 5.64l1.42-1.42c2.73-2.73 7.16-2.73 9.9 0 2.73 2.74 2.73 7.17 0 9.9l-1.42 1.42-1.41-1.42 1.41-1.41c1.96-1.96 1.96-5.12 0-7.07zm-2.12 3.53l-7.07 7.07-1.41-1.41 7.07-7.07 1.41 1.41zm-12.02.71l1.42-1.42 1.41 1.42-1.41 1.41c-1.96 1.96-1.96 5.12 0 7.07 1.95 1.96 5.11 1.96 7.07 0l1.41-1.41 1.42 1.41-1.42 1.42c-2.73 2.73-7.16 2.73-9.9 0-2.73-2.74-2.73-7.17 0-9.9z"></path></svg>`,
+      calendar: `<svg viewBox="0 0 24 24" class="w-[18.75px] h-[18.75px] fill-current"><path d="M7 4V3h2v1h6V3h2v1h1.5C19.88 4 21 5.12 21 6.5v12c0 1.38-1.12 2.5-2.5 2.5h-13C4.12 21 3 19.88 3 18.5v-12C3 5.12 4.12 4 5.5 4H7zm0 2H5.5c-.27 0-.5.22-.5.5v12c0 .28.23.5.5.5h13c.28 0 .5-.22.5-.5v-12c0-.28-.22-.5-.5-.5H17v1h-2V6H9v1H7V6zm0 6h2v-2H7v2zm0 4h2v-2H7v2zm4-4h2v-2h-2v2zm0 4h2v-2h-2v2zm4-4h2v-2h-2v2z"></path></svg>`
+    };
+
+    /* ==========================================================================
+       2. DEFAULT DIRECTORY OF ACCOUNTS & INITIAL TWEETS
+       ========================================================================== */
+    const DEFAULT_USERS = {
+      skwasim: {
+        handle: 'skwasim',
+        name: 'Sk Wasim',
+        verified: true,
+        gold: false,
+        affiliate: true,
+        avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&auto=format&fit=crop&q=80',
+        avatarFallbackBg: '#0f172a',
+        avatarInitials: 'SW',
+        bannerColor: '#0a2540',
+        bio: 'Owner & CEO of @Tweet · Building @WasimAI · Town square for 300M+ people',
+        location: 'San Francisco, CA',
+        website: 'tweet.com',
+        joined: 'Joined March 2016',
+        followers: 138412900,
+        baseFollowing: 136,
+        isFollowing: false
+      },
+      Tweet: {
+        handle: 'Tweet',
+        name: 'Tweet',
+        verified: true,
+        gold: true,
+        affiliate: false,
+        avatarUrl: '',
+        avatarFallbackBg: '#1d9bf0',
+        avatarInitials: '🐦',
+        bannerColor: '#1d9bf0',
+        bio: 'What’s happening?! Official account of Tweet. 300,000,000+ monthly active users.',
+        location: 'Everywhere',
+        website: 'tweet.com',
+        joined: 'Joined March 2006',
+        followers: 68400000,
+        baseFollowing: 1,
+        isFollowing: true
+      },
+      WasimAI: {
+        handle: 'WasimAI',
+        name: 'WasimAI',
+        verified: true,
+        gold: true,
+        affiliate: true,
+        avatarUrl: '',
+        avatarFallbackBg: '#111827',
+        avatarInitials: 'W/',
+        bannerColor: '#111827',
+        bio: 'Real-time AI assistant with direct access to the @Tweet firehose. Founded by @skwasim.',
+        location: 'Memphis Supercluster',
+        website: 'tweet.com/wasimai',
+        joined: 'Joined July 2024',
+        followers: 14200000,
+        baseFollowing: 2,
+        isFollowing: true
+      },
+      paulg: {
+        handle: 'paulg',
+        name: 'Paul Graham',
+        verified: true,
+        gold: false,
+        affiliate: false,
+        avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&auto=format&fit=crop&q=80',
+        avatarFallbackBg: '#ff6600',
+        avatarInitials: 'PG',
+        bannerColor: '#ff6600',
+        bio: 'Essays, startups, Y Combinator.',
+        location: 'England',
+        website: 'paulgraham.com',
+        joined: 'Joined April 2008',
+        followers: 1940000,
+        baseFollowing: 410,
+        isFollowing: true
+      },
+      sama: {
+        handle: 'sama',
+        name: 'Sam Altman',
+        verified: true,
+        gold: false,
+        affiliate: false,
+        avatarUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&auto=format&fit=crop&q=80',
+        avatarFallbackBg: '#1e3a8a',
+        avatarInitials: 'SA',
+        bannerColor: '#1e293b',
+        bio: 'working on agi',
+        location: 'San Francisco',
+        website: 'blog.samaltman.com',
+        joined: 'Joined June 2008',
+        followers: 3410000,
+        baseFollowing: 912,
+        isFollowing: true
+      },
+      karpathy: {
+        handle: 'karpathy',
+        name: 'Andrej Karpathy',
+        verified: true,
+        gold: false,
+        affiliate: false,
+        avatarUrl: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=200&auto=format&fit=crop&q=80',
+        avatarFallbackBg: '#065f46',
+        avatarInitials: 'AK',
+        bannerColor: '#064e3b',
+        bio: ' Eureka Labs. Previously Director of AI @ Tesla, founding team @ OpenAI.',
+        location: 'Palo Alto, CA',
+        website: 'karpathy.ai',
+        joined: 'Joined May 2011',
+        followers: 1280000,
+        baseFollowing: 580,
+        isFollowing: true
+      },
+      mkbhd: {
+        handle: 'mkbhd',
+        name: 'Marques Brownlee',
+        verified: true,
+        gold: false,
+        affiliate: false,
+        avatarUrl: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=200&auto=format&fit=crop&q=80',
+        avatarFallbackBg: '#991b1b',
+        avatarInitials: 'MB',
+        bannerColor: '#7f1d1d',
+        bio: 'Web Video Producer. 20M+ on YouTube. Host of Waveform Podcast.',
+        location: 'NYC',
+        website: 'youtube.com/mkbhd',
+        joined: 'Joined August 2009',
+        followers: 6290000,
+        baseFollowing: 465,
+        isFollowing: true
+      },
+      levelsio: {
+        handle: 'levelsio',
+        name: '@levelsio',
+        verified: true,
+        gold: false,
+        affiliate: false,
+        avatarUrl: 'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=200&auto=format&fit=crop&q=80',
+        avatarFallbackBg: '#4338ca',
+        avatarInitials: 'PL',
+        bannerColor: '#312e81',
+        bio: 'Indie maker. Building PhotoAI, InteriorAI, NomadList. Shipping fast.',
+        location: 'Lisbon, Portugal',
+        website: 'levels.io',
+        joined: 'Joined November 2010',
+        followers: 582000,
+        baseFollowing: 1420,
+        isFollowing: true
+      },
+      ylecun: {
+        handle: 'ylecun',
+        name: 'Yann LeCun',
+        verified: true,
+        gold: false,
+        affiliate: false,
+        avatarUrl: '',
+        avatarFallbackBg: '#1d4ed8',
+        avatarInitials: 'YL',
+        bannerColor: '#1e3a8a',
+        bio: 'Professor at NYU. Chief AI Scientist. ACM Turing Award Laureate.',
+        location: 'New York, NY',
+        website: 'yann.lecun.com',
+        joined: 'Joined March 2009',
+        followers: 910000,
+        baseFollowing: 620,
+        isFollowing: false
+      },
+      naval: {
+        handle: 'naval',
+        name: 'Naval',
+        verified: true,
+        gold: false,
+        affiliate: false,
+        avatarUrl: '',
+        avatarFallbackBg: '#27272a',
+        avatarInitials: 'NR',
+        bannerColor: '#18181b',
+        bio: 'Perceptions.',
+        location: 'Earth',
+        website: 'nav.al',
+        joined: 'Joined November 2007',
+        followers: 2450000,
+        baseFollowing: 0,
+        isFollowing: false
+      },
+      verge: {
+        handle: 'verge',
+        name: 'The Verge',
+        verified: true,
+        gold: true,
+        affiliate: false,
+        avatarUrl: '',
+        avatarFallbackBg: '#e11d48',
+        avatarInitials: 'TV',
+        bannerColor: '#881337',
+        bio: ' covering technology, science, art, and culture.',
+        location: 'New York, NY',
+        website: 'theverge.com',
+        joined: 'Joined April 2011',
+        followers: 3420000,
+        baseFollowing: 390,
+        isFollowing: false
+      },
+      garrytan: {
+        handle: 'garrytan',
+        name: 'Garry Tan',
+        verified: true,
+        gold: false,
+        affiliate: false,
+        avatarUrl: '',
+        avatarFallbackBg: '#ea580c',
+        avatarInitials: 'GT',
+        bannerColor: '#9a3412',
+        bio: 'President & CEO @ycombinator. Helping founders make something people want.',
+        location: 'San Francisco, CA',
+        website: 'ycombinator.com',
+        joined: 'Joined May 2007',
+        followers: 520000,
+        baseFollowing: 1890,
+        isFollowing: false
+      }
+    };
+
+    const DEFAULT_TWEETS = [
+      {
+        id: 'tw-1',
+        author: 'skwasim',
+        text: 'Tweet just crossed 300,000,000 monthly active users.\n\nZero legacy censorship, sub-50ms timeline latency, and WasimAI 2.5 now live for every account.\n\nThank you for making this the real-time town square of the internet.',
+        time: '38m',
+        fullDate: '1:44 PM · Nov 15, 2026',
+        views: 18420900,
+        likes: 742100,
+        retweets: 94200,
+        bookmarks: 51200,
+        liked: false,
+        retweeted: false,
+        bookmarked: false,
+        pinned: true,
+        imageUrl: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1000&auto=format&fit=crop&q=80',
+        imageCaption: 'Global active node connections across 300M monthly active users',
+        poll: null,
+        quoteTweetId: null,
+        replies: [
+          {
+            id: 'rep-1',
+            author: 'paulg',
+            text: '300 million users is a remarkable inflection point. The speed of product iteration here over the past 12 months feels like a 12-person startup.',
+            time: '34m',
+            likes: 12400,
+            retweets: 620,
+            views: 310000,
+            liked: false
+          },
+          {
+            id: 'rep-2',
+            author: 'karpathy',
+            text: 'Congrats @skwasim. The signal density on AI research threads here is second to none right now.',
+            time: '29m',
+            likes: 19800,
+            retweets: 890,
+            views: 490000,
+            liked: true
+          },
+          {
+            id: 'rep-3',
+            author: 'levelsio',
+            text: 'And creator ad-revenue payouts actually work! Made $8,420 last month just from posting build-in-public updates on @Tweet.',
+            time: '22m',
+            likes: 6410,
+            retweets: 310,
+            views: 142000,
+            liked: false
+          }
+        ]
+      },
+      {
+        id: 'tw-2',
+        author: 'Tweet',
+        text: 'Starting today, WasimAI 2.5 is rolling out free to all 300,000,000 users on Tweet.\n\n• Real-time indexing of public posts\n• Regular & Fun (Unhinged) reasoning modes\n• Direct one-click post drafting for creators\n\nLed by @skwasim and the @WasimAI team.',
+        time: '1h',
+        fullDate: '1:10 PM · Nov 15, 2026',
+        views: 9410000,
+        likes: 218000,
+        retweets: 41200,
+        bookmarks: 29400,
+        liked: true,
+        retweeted: false,
+        bookmarked: false,
+        pinned: false,
+        imageUrl: null,
+        poll: null,
+        quoteTweetId: null,
+        replies: [
+          {
+            id: 'rep-4',
+            author: 'mkbhd',
+            text: 'Been testing Fun Mode in the sidebar for the last hour. It definitely does not hold back.',
+            time: '49m',
+            likes: 8200,
+            retweets: 210,
+            views: 190000,
+            liked: false
+          }
+        ]
+      },
+      {
+        id: 'tw-3',
+        author: 'mkbhd',
+        text: 'Quick poll for everyone on the new Tweet web update: which background appearance are you using daily?',
+        time: '2h',
+        fullDate: '12:18 PM · Nov 15, 2026',
+        views: 4120000,
+        likes: 84200,
+        retweets: 5400,
+        bookmarks: 3100,
+        liked: false,
+        retweeted: false,
+        bookmarked: false,
+        pinned: false,
+        imageUrl: null,
+        poll: {
+          totalVotes: 241890,
+          votedIndex: null,
+          options: [
+            { label: 'Lights Out (Pure Black)', votes: 149972 },
+            { label: 'Dim (Dark Slate)', votes: 55635 },
+            { label: 'Default (Bright White)', votes: 36283 }
+          ]
+        },
+        quoteTweetId: null,
+        replies: [
+          {
+            id: 'rep-5',
+            author: 'karpathy',
+            text: 'Lights out on OLED displays is undefeated.',
+            time: '1h',
+            likes: 4300,
+            retweets: 95,
+            views: 88000,
+            liked: false
+          }
+        ]
+      },
+      {
+        id: 'tw-4',
+        author: 'sama',
+        text: 'congrats to @skwasim and the @Tweet team on crossing 300m active users. real-time distribution for new ideas matters more than ever.',
+        time: '3h',
+        fullDate: '11:32 AM · Nov 15, 2026',
+        views: 6820000,
+        likes: 194000,
+        retweets: 14200,
+        bookmarks: 8900,
+        liked: false,
+        retweeted: false,
+        bookmarked: false,
+        pinned: false,
+        imageUrl: null,
+        poll: null,
+        quoteTweetId: 'tw-1',
+        replies: []
+      },
+      {
+        id: 'tw-5',
+        author: 'karpathy',
+        text: 'Spent the morning reading through the open-sourced @Tweet ranking weights that @skwasim published.\n\nReplacing heuristic boosts with a lightweight transformer that predicts long-term bookmark + reply depth is super clean.',
+        time: '4h',
+        fullDate: '10:20 AM · Nov 15, 2026',
+        views: 2910000,
+        likes: 91400,
+        retweets: 12300,
+        bookmarks: 34200,
+        liked: true,
+        retweeted: false,
+        bookmarked: true,
+        pinned: false,
+        imageUrl: null,
+        poll: null,
+        quoteTweetId: null,
+        replies: []
+      },
+      {
+        id: 'tw-6',
+        author: 'paulg',
+        text: 'The best founders don’t hide behind PR departments. When @skwasim ships a feature on Tweet and debugs edge cases directly in the replies with users, it sets the tempo for the entire company.',
+        time: '5h',
+        fullDate: '9:15 AM · Nov 15, 2026',
+        views: 3480000,
+        likes: 112000,
+        retweets: 16400,
+        bookmarks: 19200,
+        liked: false,
+        retweeted: false,
+        bookmarked: false,
+        pinned: false,
+        imageUrl: null,
+        poll: null,
+        quoteTweetId: null,
+        replies: []
+      },
+      {
+        id: 'tw-7',
+        author: 'verge',
+        text: 'Tweet officially surpasses 300 million monthly active users as CEO Sk Wasim (@skwasim) becomes the most-followed executive on the platform at 138.4 million followers.',
+        time: '6h',
+        fullDate: '8:12 AM · Nov 15, 2026',
+        views: 5190000,
+        likes: 76400,
+        retweets: 18900,
+        bookmarks: 6400,
+        liked: false,
+        retweeted: false,
+        bookmarked: false,
+        pinned: false,
+        imageUrl: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=1000&auto=format&fit=crop&q=80',
+        imageCaption: 'THEVERGE.COM — Inside Sk Wasim’s 300M user push at Tweet HQ',
+        poll: null,
+        quoteTweetId: null,
+        replies: []
+      },
+      {
+        id: 'tw-8',
+        author: 'naval',
+        text: 'Code and media are permissionless leverage.\n\nA single post on @Tweet can reach 300 million minds while you sleep.',
+        time: '7h',
+        fullDate: '7:04 AM · Nov 15, 2026',
+        views: 4920000,
+        likes: 210000,
+        retweets: 44100,
+        bookmarks: 62000,
+        liked: false,
+        retweeted: false,
+        bookmarked: false,
+        pinned: false,
+        imageUrl: null,
+        poll: null,
+        quoteTweetId: null,
+        replies: []
+      },
+      {
+        id: 'tw-9',
+        author: 'levelsio',
+        text: 'Shipped a new real-time rendering cluster in 3 hours while watching @skwasim ship the new Tweet web client. High-agency era is back.',
+        time: '8h',
+        fullDate: '6:19 AM · Nov 15, 2026',
+        views: 1120000,
+        likes: 34900,
+        retweets: 2100,
+        bookmarks: 4800,
+        liked: false,
+        retweeted: false,
+        bookmarked: false,
+        pinned: false,
+        imageUrl: null,
+        poll: null,
+        quoteTweetId: null,
+        replies: []
+      },
+      {
+        id: 'tw-10',
+        author: 'ylecun',
+        text: 'Open weights and transparent evaluation benchmarks are essential. Glad to see @WasimAI publishing full latency and reasoning specs openly.',
+        time: '9h',
+        fullDate: '5:10 AM · Nov 15, 2026',
+        views: 1640000,
+        likes: 41200,
+        retweets: 4900,
+        bookmarks: 7100,
+        liked: false,
+        retweeted: false,
+        bookmarked: false,
+        pinned: false,
+        imageUrl: null,
+        poll: null,
+        quoteTweetId: null,
+        replies: []
+      },
+      {
+        id: 'tw-11',
+        author: 'garrytan',
+        text: 'Every YC batch founder I talk to uses @Tweet as their primary launchpad now. Congrats @skwasim on 300M users!',
+        time: '10h',
+        fullDate: '4:05 AM · Nov 15, 2026',
+        views: 980000,
+        likes: 28400,
+        retweets: 1950,
+        bookmarks: 2300,
+        liked: false,
+        retweeted: false,
+        bookmarked: false,
+        pinned: false,
+        imageUrl: null,
+        poll: null,
+        quoteTweetId: null,
+        replies: []
+      }
+    ];
+
+    const DEFAULT_DM_THREADS = {
+      Tweet: {
+        handle: 'Tweet',
+        pinned: true,
+        unread: 1,
+        lastTime: '1:05 PM',
+        messages: [
+          {
+            id: 'dm-1',
+            sender: 'Tweet',
+            time: '1:05 PM',
+            text: `Afternoon @skwasim — Comms & Growth Executive Brief for today.\n\nPlatform active users officially crossed **300,000,000 MAU** this morning and your personal profile is at **138.4M followers**.\n\nHere are the 4 priority announcements ready for your timeline whenever you want to push them live:`,
+            briefItems: [
+              {
+                id: 'b-1',
+                tag: '1 · PLATFORM SCALE MILESTONE',
+                title: '300,000,000 Active Users & Infrastructure Update',
+                draft: 'Tweet just hit a record 300,000,000 active users with p99 timeline latency under 45ms.\n\nNo legacy media filters—just the fastest global town square on Earth. What should we improve next?',
+                imageUrl: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=1000&auto=format&fit=crop&q=80'
+              },
+              {
+                id: 'b-2',
+                tag: '2 · WASIMAI 2.5 ROLLOUT',
+                title: 'WasimAI 2.5 Uncensored Firehose Access',
+                draft: 'WasimAI 2.5 is now live for all 300M users on Tweet.\n\nReal-time access to the global firehose, zero corporate lectures, and 2x faster reasoning. Try Fun Mode in the WasimAI tab and reply with your best prompts.'
+              },
+              {
+                id: 'b-3',
+                tag: '3 · CREATOR ECONOMY',
+                title: 'Doubling Creator Ad-Revenue Share Payouts',
+                draft: 'We are doubling Creator Ad-Revenue Share payouts starting this Friday.\n\nIf your posts, videos, or technical threads drive real conversation on Tweet, you should share directly in the upside.'
+              },
+              {
+                id: 'b-4',
+                tag: '4 · PRODUCT ROADMAP POLL',
+                title: 'CEO Poll for 138.4M Followers',
+                draft: 'Which feature should @Tweet engineering ship next week?',
+                poll: ['TweetPay Instant P2P', 'Open-Source Algo v3', 'WasimAI Voice Spaces', '4K Long-Form Video']
+              }
+            ]
+          }
+        ]
+      },
+      sama: {
+        handle: 'sama',
+        pinned: false,
+        unread: 1,
+        lastTime: '12:40 PM',
+        messages: [
+          {
+            id: 'dm-2',
+            sender: 'sama',
+            time: '12:40 PM',
+            text: 'hey wasim — congrats again on 300m users. are you around in sf this week to catch up on compute clusters and wasimai 2.5?'
+          }
+        ]
+      },
+      mkbhd: {
+        handle: 'mkbhd',
+        pinned: false,
+        unread: 0,
+        lastTime: 'Yesterday',
+        messages: [
+          {
+            id: 'dm-3',
+            sender: 'mkbhd',
+            time: 'Yesterday',
+            text: 'Yo @skwasim, the pure black Lights Out theme and hairline layout on the new Tweet web client is super clean. Dropping a video on WasimAI 2.5 soon.'
+          }
+        ]
+      },
+      karpathy: {
+        handle: 'karpathy',
+        pinned: false,
+        unread: 0,
+        lastTime: 'Nov 14',
+        messages: [
+          {
+            id: 'dm-4',
+            sender: 'karpathy',
+            time: 'Nov 14',
+            text: 'Thanks for open-sourcing the recommendation weights. The community PRs are already finding great optimizations.'
+          }
+        ]
+      },
+      paulg: {
+        handle: 'paulg',
+        pinned: false,
+        unread: 0,
+        lastTime: 'Nov 13',
+        messages: [
+          {
+            id: 'dm-5',
+            sender: 'paulg',
+            time: 'Nov 13',
+            text: 'Founder mode in action. Keep shipping.'
+          }
+        ]
+      }
+    };
+
+    const DEFAULT_NOTIFICATIONS = [
+      {
+        id: 'nf-1',
+        type: 'reply',
+        actors: ['paulg'],
+        text: '300 million users is a remarkable inflection point. The speed of product iteration here over the past 12 months feels like a 12-person startup.',
+        tweetId: 'tw-1',
+        time: '34m',
+        verified: true
+      },
+      {
+        id: 'nf-2',
+        type: 'like',
+        actors: ['karpathy', 'mkbhd', 'sama'],
+        extraCount: 742097,
+        text: 'Tweet just crossed 300,000,000 monthly active users.',
+        tweetId: 'tw-1',
+        time: '28m',
+        verified: true
+      },
+      {
+        id: 'nf-3',
+        type: 'retweet',
+        actors: ['Tweet', 'levelsio'],
+        extraCount: 94198,
+        text: 'Tweet just crossed 300,000,000 monthly active users.',
+        tweetId: 'tw-1',
+        time: '25m',
+        verified: true
+      },
+      {
+        id: 'nf-4',
+        type: 'mention',
+        actors: ['sama'],
+        text: 'congrats to @skwasim and the @Tweet team on crossing 300m active users. real-time distribution for new ideas matters more than ever.',
+        tweetId: 'tw-4',
+        time: '3h',
+        verified: true
+      },
+      {
+        id: 'nf-5',
+        type: 'follow',
+        actors: ['garrytan', 'naval'],
+        extraCount: 48920,
+        text: 'followed you',
+        tweetId: null,
+        time: '4h',
+        verified: true
+      }
+    ];
+
+    /* ==========================================================================
+       3. STATE MANAGEMENT & LOCALSTORAGE PERSISTENCE
+       ========================================================================== */
+    const STORAGE_KEY = 'tweet_authentic_state_v2';
+
+    let state = loadState();
+
+    function loadState() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed && parsed.users && parsed.tweets) return parsed;
+        }
+      } catch (e) {}
+      return getFreshDefaultState();
+    }
+
+    function getFreshDefaultState() {
+      return {
+        view: 'home',              // 'home' | 'explore' | 'notifications' | 'messages' | 'wasimai' | 'bookmarks' | 'monetization' | 'profile' | 'thread' | 'follow-list'
+        homeTab: 'for-you',        // 'for-you' | 'following'
+        notifTab: 'all',           // 'all' | 'verified' | 'mentions'
+        profileTab: 'posts',       // 'posts' | 'replies' | 'media' | 'likes'
+        profileHandle: 'skwasim',
+        followListType: 'following', // 'following' | 'followers' | 'suggested'
+        threadId: 'tw-1',
+        activeDmHandle: 'Tweet',
+        mobileDmListOpen: false,
+        theme: 'lights-out',
+        accent: '#1d9bf0',
+        searchQuery: '',
+        unreadNotifs: 2,
+        platformUsers: 300000000,
+        creatorBalance: 148920.40,
+        wasimAiMode: 'fun',        // 'regular' | 'fun'
+        wasimAiMessages: [
+          {
+            role: 'assistant',
+            text: `Logged in as **@skwasim** (Owner & CEO · 138.4M followers).\n\nTweet firehose status: **300,000,000+ active users** online. Ask me to summarize real-time trends, draft a high-signal post for your 138M followers, or roast anyone on the timeline.`
+          }
+        ],
+        composerFocused: false,
+        composerDraftImage: null,
+        composerDraftPoll: null,
+        composerQuoteId: null,
+        queuedNewTweets: [],
+        users: JSON.parse(JSON.stringify(DEFAULT_USERS)),
+        tweets: JSON.parse(JSON.stringify(DEFAULT_TWEETS)),
+        dmThreads: JSON.parse(JSON.stringify(DEFAULT_DM_THREADS)),
+        notifications: JSON.parse(JSON.stringify(DEFAULT_NOTIFICATIONS)),
+        payouts: [
+          { id: 'TW-88412', date: 'Nov 01, 2026', amount: '$118,450.00', status: 'Deposited' },
+          { id: 'TW-87109', date: 'Oct 15, 2026', amount: '$104,910.20', status: 'Deposited' },
+          { id: 'TW-85920', date: 'Oct 01, 2026', amount: '$96,300.00', status: 'Deposited' }
+        ],
+        trends: [
+          { category: 'Technology · Trending', topic: '300M on Tweet', posts: '482K posts', query: '300' },
+          { category: 'Trending Worldwide', topic: '@skwasim', posts: '914K posts', query: 'skwasim' },
+          { category: 'Artificial Intelligence · Trending', topic: 'WasimAI 2.5', posts: '319K posts', query: 'WasimAI' },
+          { category: 'Tech · Trending', topic: 'Open-Source Algo', posts: '142K posts', query: 'open' },
+          { category: 'Creators · Trending', topic: 'Creator Payouts', posts: '98.4K posts', query: 'payout' }
+        ]
+      };
+    }
+
+    function saveState() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({
+          theme: state.theme,
+          accent: state.accent,
+          platformUsers: state.platformUsers,
+          creatorBalance: state.creatorBalance,
+          wasimAiMode: state.wasimAiMode,
+          wasimAiMessages: state.wasimAiMessages,
+          users: state.users,
+          tweets: state.tweets,
+          dmThreads: state.dmThreads,
+          notifications: state.notifications,
+          payouts: state.payouts,
+          trends: state.trends,
+          view: state.view,
+          homeTab: state.homeTab,
+          profileHandle: state.profileHandle,
+          activeDmHandle: state.activeDmHandle
+        }));
+      } catch (e) {}
+    }
+
+    function resetDemoState() {
+      localStorage.removeItem(STORAGE_KEY);
+      state = getFreshDefaultState();
+      applyThemeAndAccent();
+      renderAll();
+      toast('Demo data reset to factory state');
+    }
+
+    /* Compute dynamic Following count for @skwasim (base 136 + currently followed accounts) */
+    function getFollowingCount(handle) {
+      const u = state.users[handle];
+      if (!u) return 0;
+      if (handle === 'skwasim') {
+        const followedCount = Object.values(state.users).filter(x => x.handle !== 'skwasim' && x.isFollowing).length;
+        return u.baseFollowing + followedCount;
+      }
+      return u.baseFollowing;
+    }
+
+    /* ==========================================================================
+       4. FORMATTING, AVATARS & BADGE RENDERERS
+       ========================================================================== */
+    function compactNum(n) {
+      if (!n && n !== 0) return '0';
+      if (n >= 1e9) return (n / 1e9).toFixed(1).replace(/\.0$/, '') + 'B';
+      if (n >= 1e6) return (n / 1e6).toFixed(1).replace(/\.0$/, '') + 'M';
+      if (n >= 1e3) return (n / 1e3).toFixed(1).replace(/\.0$/, '') + 'K';
+      return n.toLocaleString();
+    }
+
+    function exactNum(n) {
+      return Math.floor(n || 0).toLocaleString('en-US');
+    }
+
+    function esc(str = '') {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function linkifyText(raw = '') {
+      return esc(raw)
+        .replace(/\*\*([^*]+)\*\*/g, '<strong class="font-bold">$1</strong>')
+        .replace(/@([a-zA-Z0-9_]+)/g, (m, handle) => {
+          return `<span onclick="event.stopPropagation(); openProfile('${handle}')" class="tw-accent hover:underline cursor-pointer">@${handle}</span>`;
+        })
+        .replace(/#([a-zA-Z0-9_]+)/g, (m, tag) => {
+          return `<span onclick="event.stopPropagation(); runSearch('#${tag}')" class="tw-accent hover:underline cursor-pointer">#${tag}</span>`;
+        })
+        .replace(/\n/g, '<br/>');
+    }
+
+    function renderBadges(user) {
+      if (!user) return '';
+      let out = '';
+      if (user.gold) {
+        out += SVG.verifiedGold;
+      } else if (user.verified) {
+        out += SVG.verifiedBlue;
+      }
+      if (user.affiliate) {
+        out += SVG.affiliateTweet;
+      }
+      return out;
+    }
+
+    function renderAvatar(handle, size = 'w-10 h-10', textSize = 'text-sm', clickable = true) {
+      const u = state.users[handle] || {
+        handle,
+        name: handle,
+        avatarUrl: '',
+        avatarFallbackBg: '#1d9bf0',
+        avatarInitials: handle.slice(0, 2).toUpperCase()
+      };
+      const clickAttr = clickable ? `onclick="event.stopPropagation(); openProfile('${u.handle}')"` : '';
+      if (u.handle === 'Tweet') {
+        return `
+          <div ${clickAttr} class="${size} rounded-full bg-[#1d9bf0] flex items-center justify-center shrink-0 cursor-pointer hover:opacity-90 transition-opacity">
+            <svg viewBox="0 0 24 24" class="w-[58%] h-[58%] fill-white"><path d="M23.643 4.937c-.835.37-1.732.62-2.675.733.962-.576 1.7-1.49 2.048-2.578-.9.534-1.897.922-2.958 1.13-.85-.904-2.06-1.47-3.4-1.47-2.572 0-4.658 2.086-4.658 4.66 0 .364.042.718.12 1.06-3.873-.195-7.304-2.05-9.602-4.868-.4.69-.63 1.49-.63 2.342 0 1.616.823 3.043 2.072 3.878-.764-.025-1.482-.234-2.11-.583v.06c0 2.257 1.605 4.14 3.737 4.568-.392.106-.803.162-1.227.162-.3 0-.593-.028-.877-.082.593 1.85 2.313 3.198 4.352 3.234-1.595 1.25-3.604 1.995-5.786 1.995-.376 0-.747-.022-1.112-.065 2.062 1.323 4.51 2.093 7.14 2.093 8.57 0 13.255-7.098 13.255-13.254 0-.2-.005-.402-.014-.602.91-.658 1.7-1.477 2.323-2.41z"></path></svg>
+          </div>
+        `;
+      }
+      if (u.avatarUrl) {
+        return `
+          <div ${clickAttr} class="${size} rounded-full overflow-hidden shrink-0 cursor-pointer hover:opacity-90 transition-opacity flex items-center justify-center text-white font-bold ${textSize}" style="background-color:${u.avatarFallbackBg}">
+            <img src="${esc(u.avatarUrl)}" alt="${esc(u.name)}" class="w-full h-full object-cover" onerror="this.style.display='none'; this.parentElement.innerText='${esc(u.avatarInitials)}'"/>
+          </div>
+        `;
+      }
+      return `
+        <div ${clickAttr} class="${size} rounded-full shrink-0 cursor-pointer hover:opacity-90 transition-opacity flex items-center justify-center text-white font-bold ${textSize}" style="background-color:${u.avatarFallbackBg}">
+          ${esc(u.avatarInitials)}
+        </div>
+      `;
+    }
+
+    function toast(msg) {
+      const root = document.getElementById('toast-root');
+      if (!root) return;
+      const el = document.createElement('div');
+      el.className = 'px-4 py-2.5 rounded-md tw-btn-primary text-[15px] font-medium shadow-lg transition-opacity duration-200';
+      el.textContent = msg;
+      root.appendChild(el);
+      setTimeout(() => {
+        el.style.opacity = '0';
+        setTimeout(() => el.remove(), 220);
+      }, 2800);
+    }
+
+    function applyThemeAndAccent() {
+      document.documentElement.setAttribute('data-theme', state.theme || 'lights-out');
+      document.documentElement.style.setProperty('--accent', state.accent || '#1d9bf0');
+      document.documentElement.style.setProperty('--accent-hover', state.accent || '#1a8cd8');
+    }
+
+    /* ==========================================================================
+       5. KEYLESS FREE AI ENGINE (POLLINATIONS + CONTEXTUAL MULTI-TURN FALLBACK)
+       ========================================================================== */
+    async function callKeylessAI(systemInstruction, promptText, fallbackFn) {
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 4500);
+      try {
+        const fullPrompt = `${systemInstruction}\n\nInput: ${promptText}\nResponse:`;
+        const res = await fetch(
+          `https://text.pollinations.ai/${encodeURIComponent(fullPrompt)}?model=openai&seed=${Math.floor(Math.random() * 100000)}`,
+          { signal: ctrl.signal }
+        );
+        clearTimeout(timer);
+        if (res.ok) {
+          const text = (await res.text()).trim();
+          if (text && text.length > 4 && !text.startsWith('<!DOCTYPE') && !text.startsWith('{')) {
+            return text.replace(/^["']|["']$/g, '');
+          }
+        }
+      } catch (e) {
+        clearTimeout(timer);
+      }
+      return fallbackFn();
+    }
+
+    function generateSmartContextualReply(handle, incomingText) {
+      const t = incomingText.toLowerCase();
+      const map = {
+        paulg: () => {
+          if (t.includes('300') || t.includes('user')) return 'Relentless focus on product speed is the only moat that compounds at 300M scale.';
+          if (t.includes('ai') || t.includes('wasimai')) return 'The interesting thing about WasimAI having live firehose context is that it turns search into a conversation.';
+          return 'High-agency founders always end up building the infrastructure they wished existed.';
+        },
+        sama: () => {
+          if (t.includes('ai') || t.includes('wasimai')) return 'inference speed on wasimai 2.5 is super impressive. congrats to the team.';
+          return 'shipping velocity at @Tweet right now is wild to watch.';
+        },
+        karpathy: () => {
+          if (t.includes('algo') || t.includes('open') || t.includes('code')) return 'Cleanest part of the new architecture is how little glue code sits between the embedding service and the timeline mixer.';
+          return 'Tested this just now — token latency feels sub-20ms on my end. Nice work @skwasim.';
+        },
+        mkbhd: () => {
+          if (t.includes('video') || t.includes('4k')) return 'If 4K 60fps uploads roll out with zero bitrate crushing, we’re uploading full episodes here Day 1.';
+          return 'The attention to detail on the web client lately has been top tier.';
+        },
+        levelsio: () => {
+          if (t.includes('payout') || t.includes('creator') || t.includes('revenue')) return 'Confirmed: my creator payout doubled this cycle. Best place on the internet to build in public right now.';
+          return 'Ship fast, listen to users in the replies, repeat. @skwasim gets it.';
+        },
+        ylecun: () => 'Good to see empirical latency benchmarks backing up the architecture claims.',
+        naval: () => 'Truth-seeking platforms win in the long run.',
+        garrytan: () => 'Make something 300 million people want.'
+      };
+      return (map[handle] ? map[handle]() : 'Spot on @skwasim. The momentum on Tweet right now is undeniable.');
+    }
+
+    /* Multi-Turn AI Reply Trigger when @skwasim posts a Tweet or replies in a thread */
+    function scheduleCrowdRepliesToTweet(tweetObj, specificResponderHandle = null) {
+      const pool = ['paulg', 'karpathy', 'mkbhd', 'sama', 'levelsio', 'garrytan', 'naval', 'ylecun'];
+      const chosen = specificResponderHandle
+        ? [specificResponderHandle]
+        : pool.sort(() => 0.5 - Math.random()).slice(0, 3);
+
+      chosen.forEach((handle, index) => {
+        const delay = specificResponderHandle ? 2400 : (2800 + index * 2400);
+        setTimeout(async () => {
+          const persona = state.users[handle] || state.users.paulg;
+          const replyBody = await callKeylessAI(
+            `You are ${persona.name} (@${persona.handle}) on Twitter/Tweet. Bio: ${persona.bio}. Write a natural, authentic 1-sentence reply to Tweet CEO Sk Wasim (@skwasim). No hashtags, no emojis unless natural, no robotic filler.`,
+            `Sk Wasim (@skwasim) wrote: "${tweetObj.text}"`,
+            () => generateSmartContextualReply(handle, tweetObj.text)
+          );
+
+          const cleanReply = specificResponderHandle
+            ? `@skwasim ${replyBody.replace(/^@skwasim\s*/i, '')}`
+            : replyBody;
+
+          tweetObj.replies.unshift({
+            id: 'rep-' + Date.now() + '-' + Math.floor(Math.random() * 999),
+            author: handle,
+            text: cleanReply,
+            time: 'Just now',
+            likes: Math.floor(120 + Math.random() * 2400),
+            retweets: Math.floor(8 + Math.random() * 190),
+            views: Math.floor(4500 + Math.random() * 64000),
+            liked: false
+          });
+
+          // Increment @skwasim's 138.4M followers & tweet engagement realistically
+          tweetObj.views += Math.floor(95000 + Math.random() * 280000);
+          tweetObj.likes += Math.floor(4200 + Math.random() * 14000);
+          tweetObj.retweets += Math.floor(480 + Math.random() * 2100);
+          state.users.skwasim.followers += Math.floor(900 + Math.random() * 3400);
+          state.platformUsers += Math.floor(400 + Math.random() * 1500);
+          state.creatorBalance += +(85.20 + Math.random() * 210).toFixed(2);
+
+          // Add Notification for @skwasim
+          state.notifications.unshift({
+            id: 'nf-' + Date.now() + index,
+            type: 'reply',
+            actors: [handle],
+            text: cleanReply,
+            tweetId: tweetObj.id,
+            time: 'Just now',
+            verified: true
+          });
+          if (state.view !== 'notifications') state.unreadNotifs++;
+
+          saveState();
+          renderNavigation();
+          if (['home', 'thread', 'profile', 'notifications'].includes(state.view)) {
+            renderCenterColumn();
+          }
+        }, delay);
+      });
+    }
+
+    /* ==========================================================================
+       6. NAVIGATION & LAYOUT CONTROLLER
+       ========================================================================== */
+    const NAV_CONFIG = [
+      {
+        id: 'home',
+        label: 'Home',
+        outline: `<svg viewBox="0 0 24 24" class="w-[26.25px] h-[26.25px] fill-current"><path d="M12 9c-2.209 0-4 1.791-4 4s1.791 4 4 4 4-1.791 4-4-1.791-4-4-4zm0 6c-1.105 0-2-.895-2-2s.895-2 2-2 2 .895 2 2-.895 2-2 2zm0-13.304L.622 8.807l1.06 1.696L3 9.679V19.5C3 20.881 4.119 22 5.5 22h13c1.381 0 2.5-1.119 2.5-2.5V9.679l1.318.824 1.06-1.696L12 1.696zM19 19.5c0 .276-.224.5-.5.5h-13c-.276 0-.5-.224-.5-.5V8.429l7-4.375 7 4.375V19.5z"></path></svg>`,
+        solid: `<svg viewBox="0 0 24 24" class="w-[26.25px] h-[26.25px] fill-current"><path d="M12 1.696L.622 8.807l1.06 1.696L3 9.679V19.5C3 20.881 4.119 22 5.5 22h13c1.381 0 2.5-1.119 2.5-2.5V9.679l1.318.824 1.06-1.696L12 1.696zM12 16.5c-1.933 0-3.5-1.567-3.5-3.5s1.567-3.5 3.5-3.5 3.5 1.567 3.5 3.5-1.567 3.5-3.5 3.5z"></path></svg>`
+      },
+      {
+        id: 'explore',
+        label: 'Explore',
+        outline: `<svg viewBox="0 0 24 24" class="w-[26.25px] h-[26.25px] fill-current"><path d="M10.25 3.75c-3.59 0-6.5 2.91-6.5 6.5s2.91 6.5 6.5 6.5c1.795 0 3.419-.726 4.596-1.904 1.178-1.177 1.904-2.801 1.904-4.596 0-3.59-2.91-6.5-6.5-6.5zm-8.5 6.5c0-4.694 3.806-8.5 8.5-8.5s8.5 3.806 8.5 8.5c0 1.986-.682 3.815-1.824 5.262l4.781 4.781-1.414 1.414-4.781-4.781c-1.447 1.142-3.276 1.824-5.262 1.824-4.694 0-8.5-3.806-8.5-8.5z"></path></svg>`,
+        solid: `<svg viewBox="0 0 24 24" class="w-[26.25px] h-[26.25px] fill-current"><path d="M10.25 3.75c-3.59 0-6.5 2.91-6.5 6.5s2.91 6.5 6.5 6.5c1.795 0 3.419-.726 4.596-1.904 1.178-1.177 1.904-2.801 1.904-4.596 0-3.59-2.91-6.5-6.5-6.5zm-8.5 6.5c0-4.694 3.806-8.5 8.5-8.5s8.5 3.806 8.5 8.5c0 1.986-.682 3.815-1.824 5.262l4.781 4.781-1.414 1.414-4.781-4.781c-1.447 1.142-3.276 1.824-5.262 1.824-4.694 0-8.5-3.806-8.5-8.5z" stroke="currentColor" stroke-width="1.5"></path></svg>`
+      },
+      {
+        id: 'notifications',
+        label: 'Notifications',
+        badge: () => state.unreadNotifs,
+        outline: `<svg viewBox="0 0 24 24" class="w-[26.25px] h-[26.25px] fill-current"><path d="M19.993 9.042C19.48 5.017 16.054 2 11.996 2s-7.49 3.021-7.999 7.051L2.866 18H7.1c.463 2.282 2.481 4 4.9 4s4.437-1.718 4.9-4h4.236l-1.143-8.958zM12 20c-1.306 0-2.417-.835-2.829-2h5.658c-.412 1.165-1.523 2-2.829 2zm-6.866-4l.847-6.698C6.364 6.272 8.941 4 11.996 4s5.627 2.268 6.013 5.295L18.864 16H5.134z"></path></svg>`,
+        solid: `<svg viewBox="0 0 24 24" class="w-[26.25px] h-[26.25px] fill-current"><path d="M19.995 9.042C19.482 5.017 16.056 2 11.998 2s-7.49 3.021-7.999 7.051L2.868 18H7.1c.463 2.282 2.481 4 4.9 4s4.437-1.718 4.9-4h4.236l-1.141-8.958zM12 20c-1.306 0-2.417-.835-2.829-2h5.658c-.412 1.165-1.523 2-2.829 2z"></path></svg>`
+      },
+      {
+        id: 'messages',
+        label: 'Messages',
+        badge: () => Object.values(state.dmThreads).reduce((sum, t) => sum + (t.unread || 0), 0),
+        outline: `<svg viewBox="0 0 24 24" class="w-[26.25px] h-[26.25px] fill-current"><path d="M1.998 5.5c0-1.381 1.119-2.5 2.5-2.5h15c1.381 0 2.5 1.119 2.5 2.5v13c0 1.381-1.119 2.5-2.5 2.5h-15c-1.381 0-2.5-1.119-2.5-2.5v-13zm2.5-.5c-.276 0-.5.224-.5.5v2.764l8 3.638 8-3.636V5.5c0-.276-.224-.5-.5-.5h-15zm15.5 5.463l-8 3.636-8-3.638V18.5c0 .276.224.5.5.5h15c.276 0 .5-.224.5-.5v-8.037z"></path></svg>`,
+        solid: `<svg viewBox="0 0 24 24" class="w-[26.25px] h-[26.25px] fill-current"><path d="M1.998 5.5c0-1.381 1.119-2.5 2.5-2.5h15c1.381 0 2.5 1.119 2.5 2.5v13c0 1.381-1.119 2.5-2.5 2.5h-15c-1.381 0-2.5-1.119-2.5-2.5v-13zm2.5-.5c-.276 0-.5.224-.5.5v2.764l8 3.638 8-3.636V5.5c0-.276-.224-.5-.5-.5h-15z"></path></svg>`
+      },
+      {
+        id: 'wasimai',
+        label: 'WasimAI',
+        outline: `<svg viewBox="0 0 24 24" class="w-[26.25px] h-[26.25px] fill-current"><path d="M2.205 7.423L11.745 21h4.241L6.446 7.423H2.204zm4.237 7.541L2.2 21h4.243l2.12-3.017-2.121-3.019zM16.957 3L9.624 13.432l2.122 3.02L21.2 3h-4.243zm.767 6.956l-2.12 3.018L17.725 16h4.242l-4.243-6.044z"></path></svg>`,
+        solid: `<svg viewBox="0 0 24 24" class="w-[26.25px] h-[26.25px] fill-current"><path d="M2.205 7.423L11.745 21h4.241L6.446 7.423H2.204zm4.237 7.541L2.2 21h4.243l2.12-3.017-2.121-3.019zM16.957 3L9.624 13.432l2.122 3.02L21.2 3h-4.243zm.767 6.956l-2.12 3.018L17.725 16h4.242l-4.243-6.044z"></path></svg>`
+      },
+      {
+        id: 'bookmarks',
+        label: 'Bookmarks',
+        outline: `<svg viewBox="0 0 24 24" class="w-[26.25px] h-[26.25px] fill-current"><path d="M4 4.5C4 3.12 5.119 2 6.5 2h11C18.881 2 20 3.12 20 4.5v18.44l-8-5.71-8 5.71V4.5zM6.5 4c-.276 0-.5.22-.5.5v14.56l6-4.29 6 4.29V4.5c0-.28-.224-.5-.5-.5h-11z"></path></svg>`,
+        solid: `<svg viewBox="0 0 24 24" class="w-[26.25px] h-[26.25px] fill-current"><path d="M4 4.5C4 3.12 5.119 2 6.5 2h11C18.881 2 20 3.12 20 4.5v18.44l-8-5.71-8 5.71V4.5z"></path></svg>`
+      },
+      {
+        id: 'monetization',
+        label: 'Monetization',
+        outline: `<svg viewBox="0 0 24 24" class="w-[26.25px] h-[26.25px] fill-current"><path d="M12 2C6.486 2 2 6.486 2 12s4.486 10 10 10 10-4.486 10-10S17.514 2 12 2zm0 18c-4.411 0-8-3.589-8-8s3.589-8 8-8 8 3.589 8 8-3.589 8-8 8zm1-11.91V7h-2v1.09c-1.64.23-3 1.38-3 2.91 0 1.69 1.46 2.49 3.24 2.93 1.49.37 2.26.82 2.26 1.57 0 .74-.79 1.25-2 1.25-1.15 0-1.92-.48-2.12-1.25H7.32c.24 1.54 1.46 2.62 3.18 2.91V19.5h2v-1.09c1.73-.25 3-1.36 3-2.91 0-1.78-1.51-2.55-3.35-3-1.45-.36-2.15-.76-2.15-1.5 0-.69.7-1.15 1.85-1.15.99 0 1.66.41 1.85 1.15h2.04c-.21-1.42-1.32-2.45-2.74-2.76z"></path></svg>`,
+        solid: `<svg viewBox="0 0 24 24" class="w-[26.25px] h-[26.25px] fill-current"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1.41 16.09V20h-2.67v-1.93c-1.71-.36-3.16-1.46-3.27-3.4h1.96c.1 1.05.82 1.87 2.65 1.87 1.96 0 2.4-.98 2.4-1.59 0-.83-.44-1.61-2.67-2.14-2.48-.6-4.18-1.62-4.18-3.67 0-1.72 1.39-2.84 3.11-3.21V4h2.67v1.95c1.86.45 2.79 1.86 2.85 3.39H14.3c-.05-1.11-.64-1.87-2.22-1.87-1.5 0-2.4.68-2.4 1.64 0 .84.65 1.39 2.67 1.91s4.18 1.39 4.18 3.91c-.01 1.83-1.38 2.83-3.12 3.16z"></path></svg>`
+      },
+      {
+        id: 'profile',
+        label: 'Profile',
+        outline: `<svg viewBox="0 0 24 24" class="w-[26.25px] h-[26.25px] fill-current"><path d="M5.651 19h12.698c-.337-1.8-1.023-3.21-1.945-4.19C15.318 13.65 13.838 13 12 13s-3.317.65-4.404 1.81c-.922.98-1.608 2.39-1.945 4.19zm.486-5.56C7.627 11.85 9.648 11 12 11s4.373.85 5.863 2.44c1.477 1.58 2.366 3.8 2.632 6.46l.11 1.1H3.395l.11-1.1c.266-2.66 1.155-4.88 2.632-6.46zM12 4c-1.105 0-2 .9-2 2s.895 2 2 2 2-.9 2-2-.895-2-2-2zM8 6c0-2.21 1.791-4 4-4s4 1.79 4 4-1.791 4-4 4-4-1.79-4-4z"></path></svg>`,
+        solid: `<svg viewBox="0 0 24 24" class="w-[26.25px] h-[26.25px] fill-current"><path d="M12 11.816c1.355 0 2.872-.15 3.84-1.256.814-.93 1.078-2.368.806-4.392-.38-2.825-2.117-4.512-4.646-4.512S7.734 3.343 7.354 6.168c-.272 2.024-.008 3.462.806 4.392.968 1.106 2.485 1.256 3.84 1.256zM8.84 6.368c.162-1.2.787-3.212 3.16-3.212s2.998 2.013 3.16 3.212c.207 1.55.057 2.627-.45 3.205-.455.52-1.266.743-2.71.743s-2.255-.223-2.71-.743c-.507-.578-.657-1.656-.45-3.205zm11.44 12.868c-.877-3.526-4.282-5.99-8.28-5.99s-7.403 2.464-8.28 5.99c-.172.692-.028 1.4.395 1.94.408.52 1.04.82 1.733.82h12.304c.693 0 1.325-.3 1.733-.82.423-.54.568-1.247.396-1.94z"></path></svg>`
+      },
+      {
+        id: 'display',
+        label: 'Display',
+        isModal: true,
+        outline: `<svg viewBox="0 0 24 24" class="w-[26.25px] h-[26.25px] fill-current"><path d="M3.75 12c0-4.56 3.69-8.25 8.25-8.25s8.25 3.69 8.25 8.25-3.69 8.25-8.25 8.25S3.75 16.56 3.75 12zM12 1.75C6.34 1.75 1.75 6.34 1.75 12S6.34 22.25 12 22.25 22.25 17.66 22.25 12 17.66 1.75 12 1.75zm-4.75 10c0 .69.56 1.25 1.25 1.25s1.25-.56 1.25-1.25-.56-1.25-1.25-1.25-1.25.56-1.25 1.25zm9.5 0c0 .69-.56 1.25-1.25 1.25s-1.25-.56-1.25-1.25.56-1.25 1.25-1.25 1.25.56 1.25 1.25zm-4.75 0c0 .69.56 1.25 1.25 1.25s1.25-.56 1.25-1.25-.56-1.25-1.25-1.25-1.25.56-1.25 1.25z"></path></svg>`,
+        solid: `<svg viewBox="0 0 24 24" class="w-[26.25px] h-[26.25px] fill-current"><path d="M3.75 12c0-4.56 3.69-8.25 8.25-8.25s8.25 3.69 8.25 8.25-3.69 8.25-8.25 8.25S3.75 16.56 3.75 12z"></path></svg>`
+      }
+    ];
+
+    function navigate(viewId) {
+      if (viewId === 'display') {
+        openDisplayModal();
+        return;
+      }
+      if (viewId === 'profile') {
+        state.profileHandle = 'skwasim';
+      }
+      if (viewId === 'notifications') {
+        state.unreadNotifs = 0;
+      }
+      if (viewId === 'messages' && state.dmThreads[state.activeDmHandle]) {
+        state.dmThreads[state.activeDmHandle].unread = 0;
+      }
+      state.view = viewId;
+      saveState();
+      window.scrollTo({ top: 0, behavior: 'instant' });
+      renderAll();
+    }
+
+    function openProfile(handle) {
+      if (!state.users[handle]) return;
+      state.profileHandle = handle;
+      state.profileTab = 'posts';
+      state.view = 'profile';
+      saveState();
+      window.scrollTo({ top: 0, behavior: 'instant' });
+      renderAll();
+    }
+
+    function openThread(tweetId) {
+      state.threadId = tweetId;
+      state.view = 'thread';
+      saveState();
+      window.scrollTo({ top: 0, behavior: 'instant' });
+      renderAll();
+    }
+
+    function openFollowList(handle, listType = 'following') {
+      state.profileHandle = handle;
+      state.followListType = listType;
+      state.view = 'follow-list';
+      saveState();
+      window.scrollTo({ top: 0, behavior: 'instant' });
+      renderAll();
+    }
+
+    function runSearch(query) {
+      state.searchQuery = (query || '').trim();
+      state.view = 'explore';
+      saveState();
+      renderAll();
+    }
+
+    function renderNavigation() {
+      const desktopNav = document.getElementById('desktop-nav');
+      if (desktopNav) {
+        desktopNav.innerHTML = NAV_CONFIG.map(item => {
+          const isActive = state.view === item.id && !(item.id === 'profile' && state.profileHandle !== 'skwasim');
+          const badgeCount = item.badge ? item.badge() : 0;
+          return `
+            <button
+              onclick="navigate('${item.id}')"
+              class="group w-auto xl:w-full flex items-center justify-start rounded-full p-3 tw-pill-hover transition-colors"
+            >
+              <div class="relative flex items-center justify-center">
+                ${isActive ? item.solid : item.outline}
+                ${badgeCount > 0 ? `<span class="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full tw-btn-primary text-[11px] font-bold flex items-center justify-center border-2 border-[var(--bg)]">${badgeCount}</span>` : ''}
+              </div>
+              <span class="hidden xl:inline ml-5 mr-4 text-[20px] leading-6 ${isActive ? 'font-bold' : 'font-normal'}">${item.label}</span>
+            </button>
+          `;
+        }).join('');
+      }
+
+      const mobileNav = document.getElementById('mobile-nav');
+      if (mobileNav) {
+        const mobileItems = [NAV_CONFIG[0], NAV_CONFIG[1], NAV_CONFIG[4], NAV_CONFIG[2], NAV_CONFIG[3]];
+        mobileNav.innerHTML = mobileItems.map(item => {
+          const isActive = state.view === item.id;
+          const badgeCount = item.badge ? item.badge() : 0;
+          return `
+            <button onclick="navigate('${item.id}')" class="relative p-2.5 rounded-full">
+              ${isActive ? item.solid : item.outline}
+              ${badgeCount > 0 ? `<span class="absolute top-1.5 right-1.5 min-w-[16px] h-[16px] px-1 rounded-full tw-btn-primary text-[10px] font-bold flex items-center justify-center">${badgeCount}</span>` : ''}
+            </button>
+          `;
+        }).join('');
+      }
+
+      // Update Logged-in @skwasim pill
+      const navAvatar = document.getElementById('nav-user-avatar');
+      if (navAvatar) navAvatar.innerHTML = renderAvatar('skwasim', 'w-10 h-10', 'text-sm', false);
+      const navName = document.getElementById('nav-user-name');
+      if (navName) navName.textContent = state.users.skwasim.name;
+      const navBadges = document.getElementById('nav-user-badges');
+      if (navBadges) navBadges.innerHTML = renderBadges(state.users.skwasim);
+    }
+
+    function renderRightColumn() {
+      const centerCol = document.getElementById('center-column');
+      const rightCol = document.getElementById('right-column');
+
+      // Authentic Twitter Messages expands center column to 990px and hides right sidebar
+      if (state.view === 'messages') {
+        if (centerCol) centerCol.className = 'w-full max-w-[990px] min-h-screen border-x tw-border pb-16 sm:pb-0';
+        if (rightCol) rightCol.className = 'hidden';
+        return;
+      } else {
+        if (centerCol) centerCol.className = 'w-full max-w-[600px] min-h-screen border-x tw-border pb-16 sm:pb-0';
+        if (rightCol) rightCol.className = 'hidden lg:block w-[350px] shrink-0 ml-[30px] mr-[10px] pb-12';
+      }
+
+      const trendsEl = document.getElementById('right-trends');
+      if (trendsEl) {
+        trendsEl.innerHTML = state.trends.map(t => `
+          <div onclick="runSearch('${t.query}')" class="px-4 py-3 tw-row-hover cursor-pointer flex items-start justify-between">
+            <div>
+              <div class="text-[13px] leading-4 tw-muted">${esc(t.category)}</div>
+              <div class="font-bold text-[15px] leading-5 mt-0.5">${esc(t.topic)}</div>
+              <div class="text-[13px] leading-4 tw-muted mt-0.5">${esc(t.posts)}</div>
+            </div>
+            <button onclick="event.stopPropagation()" class="p-1.5 -mr-1.5 rounded-full tw-muted hover:text-[var(--accent)] hover:bg-[var(--accent-soft)]">${SVG.dots}</button>
+          </div>
+        `).join('');
+      }
+
+      const followEl = document.getElementById('right-who-to-follow');
+      if (followEl) {
+        const list = Object.values(state.users).filter(u => u.handle !== 'skwasim' && u.handle !== 'Tweet').slice(0, 3);
+        followEl.innerHTML = list.map(u => renderUserCompactRow(u, false)).join('');
+      }
+    }
+
+    function renderUserCompactRow(u, showBio = false) {
+      return `
+        <div onclick="openProfile('${u.handle}')" class="px-4 py-3 tw-row-hover cursor-pointer flex items-start justify-between gap-3">
+          <div class="flex items-start gap-3 min-w-0">
+            ${renderAvatar(u.handle, 'w-10 h-10', 'text-sm')}
+            <div class="min-w-0 leading-5">
+              <div class="flex items-center gap-1 font-bold text-[15px] hover:underline truncate">
+                <span class="truncate">${esc(u.name)}</span>
+                ${renderBadges(u)}
+              </div>
+              <div class="text-[15px] tw-muted truncate">@${u.handle}</div>
+              ${showBio ? `<p class="text-[15px] mt-1 leading-5 tw-text">${linkifyText(u.bio)}</p>` : ''}
+            </div>
+          </div>
+          ${u.handle !== 'skwasim' ? renderFollowButton(u) : ''}
+        </div>
+      `;
+    }
+
+    function renderFollowButton(u) {
+      if (u.isFollowing) {
+        return `
+          <button
+            onclick="event.stopPropagation(); toggleFollow('${u.handle}')"
+            class="tw-following-btn min-w-[98px] h-[32px] px-4 rounded-full font-bold text-[14px] shrink-0"
+          >
+            <span class="following-label">Following</span>
+            <span class="unfollow-label">Unfollow</span>
+          </button>
+        `;
+      }
+      return `
+        <button
+          onclick="event.stopPropagation(); toggleFollow('${u.handle}')"
+          class="tw-btn-inverse min-w-[78px] h-[32px] px-4 rounded-full font-bold text-[14px] shrink-0"
+        >
+          Follow
+        </button>
+      `;
+    }
+
+    /* ==========================================================================
+       7. HOME TIMELINE & AUTHENTIC INLINE COMPOSER
+       ========================================================================== */
+    function renderHomeView() {
+      const feedTweets = state.homeTab === 'following'
+        ? state.tweets.filter(t => t.author === 'skwasim' || (state.users[t.author] && state.users[t.author].isFollowing))
+        : state.tweets;
+
+      return `
+        <!-- Sticky Top Header with Mobile Bar + For you / Following Tabs -->
+        <div class="sticky top-0 z-20 tw-sticky-header border-b tw-border">
+          <div class="flex sm:hidden items-center justify-between px-4 h-[53px]">
+            <div onclick="openProfile('skwasim')">${renderAvatar('skwasim', 'w-8 h-8', 'text-xs')}</div>
+            <div onclick="navigate('home')" class="cursor-pointer">${SVG.bird}</div>
+            <button onclick="openDisplayModal()" class="p-2 rounded-full tw-pill-hover">${SVG.dots}</button>
+          </div>
+
+          <div class="grid grid-cols-2 h-[53px] text-[15px]">
+            <button onclick="state.homeTab='for-you'; saveState(); renderCenterColumn()" class="tw-row-hover flex items-center justify-center relative">
+              <div class="h-full flex items-center relative ${state.homeTab === 'for-you' ? 'font-bold tw-text' : 'font-medium tw-muted'}">
+                <span>For you</span>
+                ${state.homeTab === 'for-you' ? `<div class="absolute bottom-0 inset-x-0 h-[4px] rounded-full" style="background-color:var(--accent)"></div>` : ''}
+              </div>
+            </button>
+            <button onclick="state.homeTab='following'; saveState(); renderCenterColumn()" class="tw-row-hover flex items-center justify-center relative">
+              <div class="h-full flex items-center relative ${state.homeTab === 'following' ? 'font-bold tw-text' : 'font-medium tw-muted'}">
+                <span>Following</span>
+                ${state.homeTab === 'following' ? `<div class="absolute bottom-0 inset-x-0 h-[4px] rounded-full" style="background-color:var(--accent)"></div>` : ''}
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <!-- Inline Composer -->
+        <div class="hidden sm:block border-b tw-border">
+          ${renderComposerMarkup('inline')}
+        </div>
+
+        <!-- Non-Disruptive "Show X posts" Blue Bar -->
+        ${state.queuedNewTweets.length > 0 ? `
+          <button
+            onclick="flushQueuedTweets()"
+            class="w-full h-[48px] border-b tw-border tw-row-hover text-[15px] tw-accent font-normal flex items-center justify-center"
+          >
+            Show ${state.queuedNewTweets.length} Tweet${state.queuedNewTweets.length > 1 ? 's' : ''}
+          </button>
+        ` : ''}
+
+        <!-- Timeline Stream -->
+        <div class="divide-y tw-border">
+          ${feedTweets.map(t => renderTweetRow(t)).join('')}
+        </div>
+      `;
+    }
+
+    function renderComposerMarkup(mode = 'inline', prefill = '') {
+      const inputId = mode === 'modal' ? 'modal-composer-textarea' : 'inline-composer-textarea';
+      const ringId = mode === 'modal' ? 'modal-char-ring' : 'inline-char-ring';
+      const countId = mode === 'modal' ? 'modal-char-count' : 'inline-char-count';
+      const btnId = mode === 'modal' ? 'modal-tweet-btn' : 'inline-tweet-btn';
+      const quotedTweet = state.composerQuoteId ? state.tweets.find(t => t.id === state.composerQuoteId) : null;
+
+      return `
+        <div class="px-4 pt-3 pb-2 flex gap-3">
+          <div class="pt-0.5">${renderAvatar('skwasim', 'w-10 h-10', 'text-sm')}</div>
+          <div class="flex-1 min-w-0">
+            <textarea
+              id="${inputId}"
+              rows="${mode === 'modal' ? '4' : '2'}"
+              maxlength="400"
+              placeholder="What is happening?!"
+              onfocus="state.composerFocused=true; document.getElementById('${inputId}-reply-rule')?.classList.remove('hidden')"
+              oninput="handleComposerInput('${inputId}', '${ringId}', '${countId}', '${btnId}')"
+              class="w-full bg-transparent text-[20px] leading-6 tw-text placeholder:tw-muted resize-none py-2"
+            >${esc(prefill)}</textarea>
+
+            <!-- Image Attachment Preview -->
+            ${state.composerDraftImage ? `
+              <div class="relative mt-2 mb-3 rounded-2xl overflow-hidden border tw-border">
+                <button onclick="state.composerDraftImage=null; renderAll();" class="absolute top-2 right-2 w-8 h-8 rounded-full bg-black/75 text-white flex items-center justify-center font-bold text-sm hover:bg-black">✕</button>
+                <img src="${esc(state.composerDraftImage)}" class="w-full max-h-[320px] object-cover" alt="Attachment"/>
+              </div>
+            ` : ''}
+
+            <!-- Poll Builder Preview -->
+            ${state.composerDraftPoll ? `
+              <div class="mt-2 mb-3 rounded-2xl border tw-border p-3 space-y-2">
+                ${state.composerDraftPoll.map((opt, idx) => `
+                  <div class="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value="${esc(opt)}"
+                      placeholder="Choice ${idx + 1}"
+                      oninput="state.composerDraftPoll[${idx}]=this.value"
+                      class="flex-1 px-3 py-2 rounded-md bg-transparent border tw-border text-[15px] tw-text focus:border-[var(--accent)]"
+                    />
+                  </div>
+                `).join('')}
+                <div class="pt-2 border-t tw-border flex justify-between items-center text-[13px]">
+                  <span class="tw-muted">Poll length: 1 day</span>
+                  <button onclick="state.composerDraftPoll=null; renderAll();" class="text-[#f4212e] hover:underline font-medium">Remove poll</button>
+                </div>
+              </div>
+            ` : ''}
+
+            <!-- Quoted Tweet Preview -->
+            ${quotedTweet ? `
+              <div class="mt-2 mb-3 relative">
+                <button onclick="state.composerQuoteId=null; renderAll();" class="absolute top-2 right-2 z-10 w-6 h-6 rounded-full bg-black/75 text-white text-xs flex items-center justify-center">✕</button>
+                ${renderEmbeddedQuote(quotedTweet)}
+              </div>
+            ` : ''}
+
+            <!-- "Everyone can reply" Rule Row -->
+            <div id="${inputId}-reply-rule" class="${mode === 'modal' || state.composerFocused ? '' : 'hidden'} pb-3 border-b tw-border">
+              <button type="button" class="inline-flex items-center gap-1.5 px-3 py-0.5 -ml-2 rounded-full text-[14px] font-bold tw-accent hover:bg-[var(--accent-soft)]">
+                ${SVG.globe}
+                <span>Everyone can reply</span>
+              </button>
+            </div>
+
+            <!-- Composer Toolbar -->
+            <div class="flex items-center justify-between pt-2">
+              <div class="flex items-center -ml-2 tw-accent">
+                <button type="button" onclick="attachPresetOrUrlImage('${inputId}')" class="p-2 rounded-full hover:bg-[var(--accent-soft)]" title="Media">
+                  ${SVG.media}
+                </button>
+                <button type="button" onclick="toggleComposerPoll('${inputId}')" class="p-2 rounded-full hover:bg-[var(--accent-soft)]" title="Poll">
+                  ${SVG.poll}
+                </button>
+                <button type="button" onclick="insertEmojiIntoComposer('${inputId}')" class="p-2 rounded-full hover:bg-[var(--accent-soft)]" title="Emoji">
+                  ${SVG.emoji}
+                </button>
+                <button type="button" onclick="aiAutocompleteComposer('${inputId}', '${ringId}', '${countId}', '${btnId}')" class="ml-1 px-2.5 py-1 rounded-full text-[13px] font-bold hover:bg-[var(--accent-soft)] flex items-center gap-1" title="Draft with WasimAI">
+                  <span>WasimAI</span>
+                </button>
+              </div>
+
+              <div class="flex items-center gap-3">
+                <!-- Authentic 280-Char Circular Progress SVG -->
+                <div class="flex items-center gap-2">
+                  <svg class="w-6 h-6 -rotate-90" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="9" fill="none" stroke="var(--border)" stroke-width="2"></circle>
+                    <circle id="${ringId}" cx="12" cy="12" r="9" fill="none" stroke="var(--accent)" stroke-width="2" stroke-dasharray="56.55" stroke-dashoffset="56.55"></circle>
+                  </svg>
+                  <span id="${countId}" class="text-[13px] tw-muted hidden"></span>
+                </div>
+
+                <button
+                  id="${btnId}"
+                  onclick="publishTweet('${inputId}', ${mode === 'modal'})"
+                  class="h-[36px] px-4 rounded-full tw-btn-primary font-bold text-[15px]"
+                >
+                  Tweet
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function handleComposerInput(inputId, ringId, countId, btnId) {
+      const el = document.getElementById(inputId);
+      if (!el) return;
+      el.style.height = 'auto';
+      el.style.height = el.scrollHeight + 'px';
+
+      const len = el.value.length;
+      const max = 280;
+      const circumference = 56.55;
+      const pct = Math.min(len / max, 1);
+      const offset = circumference - pct * circumference;
+
+      const ring = document.getElementById(ringId);
+      const count = document.getElementById(countId);
+      if (ring) {
+        ring.style.strokeDashoffset = String(offset);
+        if (len >= 280) ring.style.stroke = '#f4212e';
+        else if (len >= 260) ring.style.stroke = '#ffd400';
+        else ring.style.stroke = 'var(--accent)';
+      }
+      if (count) {
+        if (len >= 260) {
+          count.classList.remove('hidden');
+          count.textContent = String(280 - len);
+          count.style.color = len >= 280 ? '#f4212e' : 'var(--text-muted)';
+        } else {
+          count.classList.add('hidden');
+        }
+      }
+    }
+
+    const TECH_PHOTO_PRESETS = [
+      'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=1000&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1518770660439-4636190af475?w=1000&auto=format&fit=crop&q=80',
+      'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1000&auto=format&fit=crop&q=80'
+    ];
+
+    function attachPresetOrUrlImage(inputId) {
+      const savedText = document.getElementById(inputId)?.value || '';
+      const currentIdx = TECH_PHOTO_PRESETS.indexOf(state.composerDraftImage);
+      state.composerDraftImage = TECH_PHOTO_PRESETS[(currentIdx + 1) % TECH_PHOTO_PRESETS.length];
+      renderCenterColumn();
+      const restored = document.getElementById(inputId);
+      if (restored) restored.value = savedText;
+    }
+
+    function toggleComposerPoll(inputId) {
+      const savedText = document.getElementById(inputId)?.value || '';
+      state.composerDraftPoll = state.composerDraftPoll ? null : ['Yes — ship it now', 'Needs more testing'];
+      renderCenterColumn();
+      const restored = document.getElementById(inputId);
+      if (restored) restored.value = savedText;
+    }
+
+    function insertEmojiIntoComposer(inputId) {
+      const el = document.getElementById(inputId);
+      if (!el) return;
+      const emojis = ['🚀', '🔥', '⚡', '💯', '🐦', '📈'];
+      el.value += emojis[Math.floor(Math.random() * emojis.length)];
+      el.focus();
+    }
+
+    async function aiAutocompleteComposer(inputId, ringId, countId, btnId) {
+      const el = document.getElementById(inputId);
+      if (!el) return;
+      const seed = el.value.trim();
+      el.value = 'Drafting...';
+      const samples = [
+        'We just reduced p99 timeline latency on Tweet to 38ms across 300,000,000 active users.\n\nSmall, high-velocity engineering teams beat bloated committees every time.',
+        'WasimAI 2.5 is now processing live context across every public conversation on Tweet.\n\nTry asking it a hard technical question and compare the speed.',
+        'Doubling creator revenue share payouts starting this week. If you create high-signal content on Tweet, you should own the upside.'
+      ];
+      const text = await callKeylessAI(
+        `You are Sk Wasim (@skwasim), Owner & CEO of Tweet (300M active users, 138.4M followers) and creator of WasimAI. Write a crisp, authentic tech CEO tweet under 220 characters. No hashtags.`,
+        seed || 'Write a high-signal CEO update about Tweet or WasimAI.',
+        () => samples[Math.floor(Math.random() * samples.length)]
+      );
+      el.value = text;
+      handleComposerInput(inputId, ringId, countId, btnId);
+      el.focus();
+    }
+
+    function publishTweet(inputId, isModal = false) {
+      const el = document.getElementById(inputId);
+      const text = el ? el.value.trim() : '';
+      if (!text && !state.composerDraftImage && !state.composerQuoteId) return;
+
+      let pollObj = null;
+      if (state.composerDraftPoll) {
+        const validOpts = state.composerDraftPoll.map(s => s.trim()).filter(Boolean);
+        if (validOpts.length >= 2) {
+          pollObj = {
+            totalVotes: 0,
+            votedIndex: null,
+            options: validOpts.map(label => ({ label, votes: Math.floor(240 + Math.random() * 900) }))
+          };
+          pollObj.totalVotes = pollObj.options.reduce((acc, o) => acc + o.votes, 0);
+        }
+      }
+
+      const newTweet = {
+        id: 'tw-' + Date.now(),
+        author: 'skwasim',
+        text,
+        time: '1s',
+        fullDate: '2:22 PM · Nov 15, 2026',
+        views: 12400,
+        likes: 890,
+        retweets: 140,
+        bookmarks: 65,
+        liked: false,
+        retweeted: false,
+        bookmarked: false,
+        pinned: false,
+        imageUrl: state.composerDraftImage,
+        poll: pollObj,
+        quoteTweetId: state.composerQuoteId,
+        replies: []
+      };
+
+      state.tweets.unshift(newTweet);
+      state.composerDraftImage = null;
+      state.composerDraftPoll = null;
+      state.composerQuoteId = null;
+      state.composerFocused = false;
+
+      // Immediate CEO follower & impression bump
+      state.users.skwasim.followers += Math.floor(1800 + Math.random() * 4200);
+      state.platformUsers += Math.floor(900 + Math.random() * 2500);
+      saveState();
+
+      if (isModal) closeModal();
+      state.view = 'home';
+      renderAll();
+      toast('Your Tweet was sent.');
+
+      // Schedule realistic multi-turn crowd replies to @skwasim
+      scheduleCrowdRepliesToTweet(newTweet);
+    }
+
+    /* ==========================================================================
+       8. TWEET ROW COMPONENT (EDGE-TO-EDGE 1PX HAIRLINE TWITTER GEOMETRY)
+       ========================================================================== */
+    function renderTweetRow(tweet) {
+      const author = state.users[tweet.author] || state.users.skwasim;
+      const quoted = tweet.quoteTweetId ? state.tweets.find(x => x.id === tweet.quoteTweetId) : null;
+
+      return `
+        <article
+          onclick="openThread('${tweet.id}')"
+          class="px-4 py-3 tw-row-hover cursor-pointer flex gap-3"
+        >
+          <div class="shrink-0 pt-0.5">
+            ${renderAvatar(author.handle, 'w-10 h-10', 'text-sm')}
+          </div>
+
+          <div class="flex-1 min-w-0">
+            ${tweet.pinned ? `
+              <div class="flex items-center gap-2 text-[13px] leading-4 font-bold tw-muted mb-1 -ml-5">
+                ${SVG.pin}
+                <span>Pinned</span>
+              </div>
+            ` : ''}
+
+            <!-- Top Author Metadata Line -->
+            <div class="flex items-center justify-between gap-2">
+              <div class="flex items-center gap-1 min-w-0 leading-5 flex-wrap">
+                <span onclick="event.stopPropagation(); openProfile('${author.handle}')" class="font-bold text-[15px] tw-text hover:underline truncate">${esc(author.name)}</span>
+                <span class="inline-flex items-center gap-1 shrink-0">${renderBadges(author)}</span>
+                <span onclick="event.stopPropagation(); openProfile('${author.handle}')" class="text-[15px] tw-muted truncate">@${author.handle}</span>
+                <span class="text-[15px] tw-muted">·</span>
+                <span class="text-[15px] tw-muted hover:underline shrink-0">${esc(tweet.time)}</span>
+              </div>
+
+              <button
+                onclick="event.stopPropagation(); ${tweet.author === 'skwasim' ? `deleteTweet('${tweet.id}')` : `openQuoteModal('${tweet.id}')`}"
+                class="p-1.5 -mr-1.5 rounded-full tw-muted hover:text-[var(--accent)] hover:bg-[var(--accent-soft)]"
+                title="${tweet.author === 'skwasim' ? 'Delete Tweet' : 'More'}"
+              >
+                ${SVG.dots}
+              </button>
+            </div>
+
+            <!-- Tweet Text (Exact 15px / 20px line-height) -->
+            ${tweet.text ? `<div class="text-[15px] leading-5 tw-text mt-0.5 break-words">${linkifyText(tweet.text)}</div>` : ''}
+
+            <!-- Attached Media Image -->
+            ${tweet.imageUrl ? `
+              <div class="mt-3 rounded-2xl overflow-hidden border tw-border tw-bg-secondary">
+                <img src="${esc(tweet.imageUrl)}" alt="Tweet media" class="w-full max-h-[380px] object-cover block" />
+                ${tweet.imageCaption ? `<div class="px-3 py-2 text-[13px] tw-muted border-t tw-border">${esc(tweet.imageCaption)}</div>` : ''}
+              </div>
+            ` : ''}
+
+            <!-- Attached Poll -->
+            ${tweet.poll ? renderPollBox(tweet) : ''}
+
+            <!-- Embedded Quote Tweet -->
+            ${quoted ? `<div class="mt-3">${renderEmbeddedQuote(quoted)}</div>` : ''}
+
+            <!-- Authentic 18.75px Action Bar -->
+            <div class="flex items-center justify-between max-w-[425px] mt-1.5 -ml-2 text-[13px] tw-muted select-none">
+              <!-- Reply -->
+              <button onclick="event.stopPropagation(); openReplyModal('${tweet.id}')" class="act-reply flex items-center group">
+                <div class="act-circle p-2 rounded-full transition-colors">${SVG.reply}</div>
+                <span class="px-1 tabular-nums">${tweet.replies.length > 0 ? compactNum(tweet.replies.length) : ''}</span>
+              </button>
+
+              <!-- Retweet / Quote -->
+              <button onclick="event.stopPropagation(); toggleRetweet('${tweet.id}')" class="act-retweet ${tweet.retweeted ? 'is-active' : ''} flex items-center group">
+                <div class="act-circle p-2 rounded-full transition-colors">${SVG.retweet}</div>
+                <span class="px-1 tabular-nums">${tweet.retweets > 0 ? compactNum(tweet.retweets) : ''}</span>
+              </button>
+
+              <!-- Like -->
+              <button onclick="event.stopPropagation(); toggleLike('${tweet.id}')" class="act-like ${tweet.liked ? 'is-active' : ''} flex items-center group">
+                <div class="act-circle p-2 rounded-full transition-colors">${tweet.liked ? SVG.likeSolid : SVG.likeOutline}</div>
+                <span class="px-1 tabular-nums">${tweet.likes > 0 ? compactNum(tweet.likes) : ''}</span>
+              </button>
+
+              <!-- Views -->
+              <button onclick="event.stopPropagation(); openAnalyticsModal('${tweet.id}')" class="act-blue flex items-center group">
+                <div class="act-circle p-2 rounded-full transition-colors">${SVG.views}</div>
+                <span class="px-1 tabular-nums">${compactNum(tweet.views)}</span>
+              </button>
+
+              <!-- Bookmark & Share -->
+              <div class="flex items-center">
+                <button onclick="event.stopPropagation(); toggleBookmark('${tweet.id}')" class="act-blue ${tweet.bookmarked ? 'is-active' : ''} flex items-center">
+                  <div class="act-circle p-2 rounded-full transition-colors">${tweet.bookmarked ? SVG.bookmarkSolid : SVG.bookmarkOutline}</div>
+                </button>
+                <button onclick="event.stopPropagation(); copyTweetLink('${tweet.id}')" class="act-blue flex items-center">
+                  <div class="act-circle p-2 rounded-full transition-colors">${SVG.share}</div>
+                </button>
+              </div>
+            </div>
+          </div>
+        </article>
+      `;
+    }
+
+    function renderEmbeddedQuote(q) {
+      const qa = state.users[q.author] || state.users.skwasim;
+      return `
+        <div
+          onclick="event.stopPropagation(); openThread('${q.id}')"
+          class="rounded-2xl border tw-border p-3 tw-row-hover cursor-pointer"
+        >
+          <div class="flex items-center gap-1.5 text-[14px] leading-4">
+            ${renderAvatar(qa.handle, 'w-5 h-5', 'text-[10px]', false)}
+            <span class="font-bold tw-text truncate">${esc(qa.name)}</span>
+            ${renderBadges(qa)}
+            <span class="tw-muted truncate">@${qa.handle} · ${esc(q.time)}</span>
+          </div>
+          <div class="text-[15px] leading-5 tw-text mt-1">${linkifyText(q.text)}</div>
+        </div>
+      `;
+    }
+
+    function renderPollBox(tweet) {
+      const p = tweet.poll;
+      return `
+        <div class="mt-3 space-y-2" onclick="event.stopPropagation()">
+          ${p.options.map((opt, idx) => {
+            const pct = p.totalVotes > 0 ? Math.round((opt.votes / p.totalVotes) * 100) : 0;
+            const isChosen = p.votedIndex === idx;
+            return `
+              <button
+                onclick="votePoll('${tweet.id}', ${idx})"
+                class="w-full relative h-[38px] rounded-md border tw-border overflow-hidden flex items-center justify-between px-3 text-[15px] transition-colors hover:border-[var(--accent)]"
+              >
+                <div class="absolute inset-y-0 left-0 transition-all" style="width:${pct}%; background-color:${isChosen ? 'rgba(29, 155, 240, 0.28)' : 'var(--bg-search)'}"></div>
+                <span class="relative z-10 font-medium flex items-center gap-1.5">
+                  <span>${esc(opt.label)}</span>
+                  ${isChosen ? `<span class="tw-accent font-bold">✓</span>` : ''}
+                </span>
+                <span class="relative z-10 font-bold tabular-nums">${pct}%</span>
+              </button>
+            `;
+          }).join('')}
+          <div class="text-[13px] tw-muted pt-0.5">${exactNum(p.totalVotes)} votes</div>
+        </div>
+      `;
+    }
+
+    function votePoll(tweetId, idx) {
+      const t = state.tweets.find(x => x.id === tweetId);
+      if (!t || !t.poll || t.poll.votedIndex !== null) return;
+      t.poll.votedIndex = idx;
+      t.poll.options[idx].votes += 1;
+      t.poll.totalVotes += 1;
+      saveState();
+      renderCenterColumn();
+    }
+
+    function toggleLike(tweetId) {
+      const t = state.tweets.find(x => x.id === tweetId);
+      if (!t) return;
+      t.liked = !t.liked;
+      t.likes += t.liked ? 1 : -1;
+      saveState();
+      renderCenterColumn();
+    }
+
+    function toggleRetweet(tweetId) {
+      const t = state.tweets.find(x => x.id === tweetId);
+      if (!t) return;
+      t.retweeted = !t.retweeted;
+      t.retweets += t.retweeted ? 1 : -1;
+      saveState();
+      renderCenterColumn();
+    }
+
+    function toggleBookmark(tweetId) {
+      const t = state.tweets.find(x => x.id === tweetId);
+      if (!t) return;
+      t.bookmarked = !t.bookmarked;
+      t.bookmarks += t.bookmarked ? 1 : -1;
+      saveState();
+      renderCenterColumn();
+      toast(t.bookmarked ? 'Tweet added to your Bookmarks' : 'Tweet removed from your Bookmarks');
+    }
+
+    function copyTweetLink(tweetId) {
+      toast('Copied link to Tweet');
+    }
+
+    function deleteTweet(tweetId) {
+      state.tweets = state.tweets.filter(x => x.id !== tweetId);
+      if (state.view === 'thread' && state.threadId === tweetId) state.view = 'home';
+      saveState();
+      renderCenterColumn();
+      toast('Your Tweet was deleted');
+    }
+
+    function toggleFollow(handle) {
+      const u = state.users[handle];
+      if (!u || handle === 'skwasim') return;
+      u.isFollowing = !u.isFollowing;
+      u.followers += u.isFollowing ? 1 : -1;
+      saveState();
+      renderAll();
+    }
+
+    /* ==========================================================================
+       9. THREAD / TWEET DETAIL VIEW & MULTI-TURN REPLIES
+       ========================================================================== */
+    function renderThreadView() {
+      const tweet = state.tweets.find(x => x.id === state.threadId) || state.tweets[0];
+      if (!tweet) return renderHomeView();
+      const author = state.users[tweet.author] || state.users.skwasim;
+      const quoted = tweet.quoteTweetId ? state.tweets.find(x => x.id === tweet.quoteTweetId) : null;
+
+      return `
+        <!-- Sticky Back Header -->
+        <div class="sticky top-0 z-20 tw-sticky-header h-[53px] px-4 flex items-center gap-6 border-b tw-border">
+          <button onclick="navigate('home')" class="p-2 -ml-2 rounded-full tw-pill-hover">${SVG.backArrow}</button>
+          <h1 class="font-bold text-[20px] leading-6">Tweet</h1>
+        </div>
+
+        <!-- Focal Tweet Block -->
+        <div class="px-4 pt-3 pb-1 border-b tw-border">
+          <div class="flex items-center justify-between">
+            <div onclick="openProfile('${author.handle}')" class="flex items-center gap-3 cursor-pointer">
+              ${renderAvatar(author.handle, 'w-10 h-10', 'text-sm')}
+              <div class="leading-5">
+                <div class="flex items-center gap-1 font-bold text-[15px] hover:underline">
+                  <span>${esc(author.name)}</span>
+                  ${renderBadges(author)}
+                </div>
+                <div class="text-[15px] tw-muted">@${author.handle}</div>
+              </div>
+            </div>
+            ${author.handle !== 'skwasim' ? renderFollowButton(author) : ''}
+          </div>
+
+          <!-- 17px Expanded Tweet Text -->
+          <div class="text-[17px] leading-6 tw-text mt-3 break-words">${linkifyText(tweet.text)}</div>
+
+          ${tweet.imageUrl ? `
+            <div class="mt-3 rounded-2xl overflow-hidden border tw-border">
+              <img src="${esc(tweet.imageUrl)}" class="w-full max-h-[450px] object-cover block" alt="Media"/>
+            </div>
+          ` : ''}
+
+          ${tweet.poll ? renderPollBox(tweet) : ''}
+          ${quoted ? `<div class="mt-3">${renderEmbeddedQuote(quoted)}</div>` : ''}
+
+          <!-- Timestamp & Views Line -->
+          <div class="py-4 text-[15px] tw-muted border-b tw-border flex items-center gap-1.5 flex-wrap">
+            <span>${esc(tweet.fullDate || '2:14 PM · Nov 15, 2026')}</span>
+            <span>·</span>
+            <span class="tw-text font-bold">${compactNum(tweet.views)}</span>
+            <span>Views</span>
+          </div>
+
+          <!-- Retweets / Likes / Bookmarks Counter Row -->
+          <div class="py-3 text-[14px] tw-muted border-b tw-border flex items-center gap-5 flex-wrap">
+            <span><strong class="tw-text font-bold">${compactNum(tweet.retweets)}</strong> Retweets</span>
+            <span><strong class="tw-text font-bold">${compactNum(tweet.likes)}</strong> Likes</span>
+            <span><strong class="tw-text font-bold">${compactNum(tweet.bookmarks)}</strong> Bookmarks</span>
+          </div>
+
+          <!-- Action Icons Row -->
+          <div class="py-1.5 flex items-center justify-around tw-muted border-b tw-border">
+            <button onclick="document.getElementById('thread-reply-box')?.focus()" class="act-reply p-2 rounded-full">${SVG.reply}</button>
+            <button onclick="toggleRetweet('${tweet.id}')" class="act-retweet ${tweet.retweeted ? 'is-active' : ''} p-2 rounded-full">${SVG.retweet}</button>
+            <button onclick="toggleLike('${tweet.id}')" class="act-like ${tweet.liked ? 'is-active' : ''} p-2 rounded-full">${tweet.liked ? SVG.likeSolid : SVG.likeOutline}</button>
+            <button onclick="toggleBookmark('${tweet.id}')" class="act-blue ${tweet.bookmarked ? 'is-active' : ''} p-2 rounded-full">${tweet.bookmarked ? SVG.bookmarkSolid : SVG.bookmarkOutline}</button>
+            <button onclick="copyTweetLink('${tweet.id}')" class="act-blue p-2 rounded-full">${SVG.share}</button>
+          </div>
+
+          <!-- Inline Thread Reply Box -->
+          <div class="py-3 flex gap-3 items-start">
+            ${renderAvatar('skwasim', 'w-10 h-10', 'text-sm')}
+            <div class="flex-1 min-w-0">
+              <div class="text-[13px] tw-muted mb-1">Replying to <span class="tw-accent">@${author.handle}</span></div>
+              <textarea
+                id="thread-reply-box"
+                rows="2"
+                placeholder="Post your reply"
+                class="w-full bg-transparent text-[17px] leading-6 tw-text placeholder:tw-muted resize-none"
+              ></textarea>
+              <div class="flex items-center justify-between pt-2">
+                <button onclick="aiDraftReply('${tweet.id}')" class="px-2.5 py-1 rounded-full text-[13px] font-bold tw-accent hover:bg-[var(--accent-soft)]">
+                  WasimAI Reply
+                </button>
+                <button onclick="submitReplyToThread('${tweet.id}')" class="h-[36px] px-4 rounded-full tw-btn-primary font-bold text-[15px]">
+                  Reply
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Replies Stream -->
+        <div class="divide-y tw-border">
+          ${tweet.replies.map(r => {
+            const ra = state.users[r.author] || state.users.skwasim;
+            return `
+              <div class="px-4 py-3 tw-row-hover flex gap-3">
+                ${renderAvatar(ra.handle, 'w-10 h-10', 'text-sm')}
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center gap-1 text-[15px] leading-5 flex-wrap">
+                    <span onclick="openProfile('${ra.handle}')" class="font-bold tw-text hover:underline cursor-pointer">${esc(ra.name)}</span>
+                    ${renderBadges(ra)}
+                    <span onclick="openProfile('${ra.handle}')" class="tw-muted cursor-pointer">@${ra.handle}</span>
+                    <span class="tw-muted">·</span>
+                    <span class="tw-muted">${esc(r.time)}</span>
+                  </div>
+                  <div class="text-[15px] leading-5 tw-text mt-1 break-words">${linkifyText(r.text)}</div>
+
+                  <!-- Reply Action Bar (Allows replying directly back to this user for multi-turn conversation) -->
+                  <div class="flex items-center justify-between max-w-[360px] mt-1.5 -ml-2 text-[13px] tw-muted">
+                    <button onclick="replyToSpecificComment('${ra.handle}')" class="act-reply flex items-center">
+                      <div class="act-circle p-1.5 rounded-full">${SVG.reply}</div>
+                      <span class="px-1">Reply</span>
+                    </button>
+                    <button onclick="r.retweets=(r.retweets||0)+1; renderCenterColumn()" class="act-retweet flex items-center">
+                      <div class="act-circle p-1.5 rounded-full">${SVG.retweet}</div>
+                      <span class="px-1">${compactNum(r.retweets || 0)}</span>
+                    </button>
+                    <button onclick="toggleReplyLike('${tweet.id}', '${r.id}')" class="act-like ${r.liked ? 'is-active' : ''} flex items-center">
+                      <div class="act-circle p-1.5 rounded-full">${r.liked ? SVG.likeSolid : SVG.likeOutline}</div>
+                      <span class="px-1">${compactNum(r.likes || 0)}</span>
+                    </button>
+                    <span class="flex items-center gap-1">
+                      ${SVG.views}
+                      <span>${compactNum(r.views || 14200)}</span>
+                    </span>
+                  </div>
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `;
+    }
+
+    function toggleReplyLike(tweetId, replyId) {
+      const t = state.tweets.find(x => x.id === tweetId);
+      if (!t) return;
+      const r = t.replies.find(x => x.id === replyId);
+      if (!r) return;
+      r.liked = !r.liked;
+      r.likes += r.liked ? 1 : -1;
+      saveState();
+      renderCenterColumn();
+    }
+
+    function replyToSpecificComment(handle) {
+      const box = document.getElementById('thread-reply-box');
+      if (!box) return;
+      box.value = `@${handle} `;
+      box.dataset.replyTarget = handle;
+      box.focus();
+    }
+
+    async function aiDraftReply(tweetId) {
+      const t = state.tweets.find(x => x.id === tweetId);
+      const box = document.getElementById('thread-reply-box');
+      if (!t || !box) return;
+      box.value = 'Drafting...';
+      const draft = await callKeylessAI(
+        `You are Sk Wasim (@skwasim), CEO of Tweet. Write a sharp, concise 1-sentence reply to this post.`,
+        t.text,
+        () => 'Rolling out an optimization for this in tonight’s build.'
+      );
+      box.value = draft;
+      box.focus();
+    }
+
+    function submitReplyToThread(tweetId) {
+      const t = state.tweets.find(x => x.id === tweetId);
+      const box = document.getElementById('thread-reply-box');
+      if (!t || !box) return;
+      const text = box.value.trim();
+      if (!text) return;
+
+      // Detect if @skwasim mentioned a specific user or is replying to the thread author
+      const mentionMatch = text.match(/^@([a-zA-Z0-9_]+)/);
+      const targetHandle = (mentionMatch && state.users[mentionMatch[1]])
+        ? mentionMatch[1]
+        : (t.author !== 'skwasim' ? t.author : 'karpathy');
+
+      t.replies.unshift({
+        id: 'rep-' + Date.now(),
+        author: 'skwasim',
+        text,
+        time: 'Just now',
+        likes: 640,
+        retweets: 82,
+        views: 19400,
+        liked: false
+      });
+
+      saveState();
+      renderCenterColumn();
+      toast('Your reply was sent.');
+
+      // Trigger multi-turn response back from the target user
+      scheduleCrowdRepliesToTweet(t, targetHandle);
+    }
+
+    /* ==========================================================================
+       10. PROFILE VIEW & FOLLOWERS/FOLLOWING LISTS
+       ========================================================================== */
+    function renderProfileView() {
+      const u = state.users[state.profileHandle] || state.users.skwasim;
+      const isMe = u.handle === 'skwasim';
+      const followingCount = getFollowingCount(u.handle);
+
+      let posts = state.tweets.filter(t => t.author === u.handle);
+      if (state.profileTab === 'media') {
+        posts = posts.filter(t => !!t.imageUrl);
+      } else if (state.profileTab === 'likes') {
+        posts = isMe ? state.tweets.filter(t => t.liked) : posts.slice(0, 2);
+      }
+
+      return `
+        <!-- Sticky Top Header -->
+        <div class="sticky top-0 z-20 tw-sticky-header h-[53px] px-4 flex items-center gap-6 border-b tw-border">
+          <button onclick="navigate('home')" class="p-2 -ml-2 rounded-full tw-pill-hover">${SVG.backArrow}</button>
+          <div class="min-w-0 leading-5">
+            <div class="flex items-center gap-1 font-bold text-[20px] truncate">
+              <span class="truncate">${esc(u.name)}</span>
+              ${renderBadges(u)}
+            </div>
+            <div class="text-[13px] tw-muted">${posts.length} Tweets</div>
+          </div>
+        </div>
+
+        <!-- Profile Banner (200px) -->
+        <div class="h-[195px] w-full" style="background: linear-gradient(135deg, ${u.bannerColor} 0%, #090d16 100%);"></div>
+
+        <!-- Profile Header Details -->
+        <div class="px-4 pb-3 border-b tw-border">
+          <div class="flex justify-between items-start h-[68px]">
+            <div class="-mt-[68px] p-1 rounded-full tw-bg">
+              ${renderAvatar(u.handle, 'w-[134px] h-[134px]', 'text-4xl', false)}
+            </div>
+            <div class="pt-3 flex items-center gap-2">
+              ${isMe ? `
+                <button onclick="openEditProfileModal()" class="h-[36px] px-4 rounded-full border tw-border font-bold text-[15px] tw-pill-hover">
+                  Edit profile
+                </button>
+              ` : `
+                <button onclick="openDmConversation('${u.handle}')" class="w-[36px] h-[36px] rounded-full border tw-border flex items-center justify-center tw-pill-hover" title="Message">
+                  <svg viewBox="0 0 24 24" class="w-[18.75px] h-[18.75px] fill-current"><path d="M1.998 5.5c0-1.381 1.119-2.5 2.5-2.5h15c1.381 0 2.5 1.119 2.5 2.5v13c0 1.381-1.119 2.5-2.5 2.5h-15c-1.381 0-2.5-1.119-2.5-2.5v-13zm2.5-.5c-.276 0-.5.224-.5.5v2.764l8 3.638 8-3.636V5.5c0-.276-.224-.5-.5-.5h-15zm15.5 5.463l-8 3.636-8-3.638V18.5c0 .276.224.5.5.5h15c.276 0 .5-.224.5-.5v-8.037z"></path></svg>
+                </button>
+                ${renderFollowButton(u)}
+              `}
+            </div>
+          </div>
+
+          <div class="mt-2 leading-6">
+            <div class="flex items-center gap-1 font-extrabold text-[20px]">
+              <span>${esc(u.name)}</span>
+              ${renderBadges(u)}
+            </div>
+            <div class="text-[15px] tw-muted">@${u.handle}</div>
+          </div>
+
+          <div class="text-[15px] leading-5 mt-3">${linkifyText(u.bio)}</div>
+
+          <div class="flex flex-wrap gap-x-4 gap-y-1 text-[15px] tw-muted mt-3">
+            <span class="flex items-center gap-1">${SVG.location} <span>${esc(u.location)}</span></span>
+            <span class="flex items-center gap-1">${SVG.link} <span class="tw-accent hover:underline cursor-pointer">${esc(u.website)}</span></span>
+            <span class="flex items-center gap-1">${SVG.calendar} <span>${esc(u.joined)}</span></span>
+          </div>
+
+          <!-- Clickable Following / Followers Counts -->
+          <div class="flex items-center gap-5 mt-3 text-[14px]">
+            <button onclick="openFollowList('${u.handle}', 'following')" class="hover:underline">
+              <strong class="tw-text font-bold">${exactNum(followingCount)}</strong>
+              <span class="tw-muted">Following</span>
+            </button>
+            <button onclick="openFollowList('${u.handle}', 'followers')" class="hover:underline" title="${exactNum(u.followers)} followers">
+              <strong class="tw-text font-bold">${compactNum(u.followers)}</strong>
+              <span class="tw-muted">Followers</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Profile Sub-Navigation Tabs -->
+        <div class="grid grid-cols-4 h-[53px] text-[15px] border-b tw-border">
+          ${[
+            { id: 'posts', label: 'Tweets' },
+            { id: 'replies', label: 'Replies' },
+            { id: 'media', label: 'Media' },
+            { id: 'likes', label: 'Likes' }
+          ].map(tab => `
+            <button onclick="state.profileTab='${tab.id}'; renderCenterColumn()" class="tw-row-hover flex items-center justify-center relative">
+              <div class="h-full flex items-center relative ${state.profileTab === tab.id ? 'font-bold tw-text' : 'font-medium tw-muted'}">
+                <span>${tab.label}</span>
+                ${state.profileTab === tab.id ? `<div class="absolute bottom-0 inset-x-0 h-[4px] rounded-full" style="background-color:var(--accent)"></div>` : ''}
+              </div>
+            </button>
+          `).join('')}
+        </div>
+
+        <!-- Profile Posts Stream -->
+        <div class="divide-y tw-border">
+          ${posts.length === 0 ? `
+            <div class="py-12 text-center tw-muted text-[15px]">No Tweets to show right now.</div>
+          ` : posts.map(t => renderTweetRow(t)).join('')}
+        </div>
+      `;
+    }
+
+    function renderFollowListView() {
+      const u = state.users[state.profileHandle] || state.users.skwasim;
+      const allAccounts = Object.values(state.users).filter(x => x.handle !== 'skwasim');
+      const list = state.followListType === 'following'
+        ? allAccounts.filter(x => x.isFollowing)
+        : allAccounts;
+
+      return `
+        <div class="sticky top-0 z-20 tw-sticky-header border-b tw-border">
+          <div class="h-[53px] px-4 flex items-center gap-6">
+            <button onclick="openProfile('${u.handle}')" class="p-2 -ml-2 rounded-full tw-pill-hover">${SVG.backArrow}</button>
+            <div class="leading-5">
+              <div class="flex items-center gap-1 font-bold text-[20px]">
+                <span>${esc(u.name)}</span>
+                ${renderBadges(u)}
+              </div>
+              <div class="text-[13px] tw-muted">@${u.handle}</div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 h-[53px] text-[15px]">
+            <button onclick="state.followListType='followers'; renderCenterColumn()" class="tw-row-hover flex items-center justify-center">
+              <div class="h-full flex items-center relative ${state.followListType === 'followers' ? 'font-bold tw-text' : 'tw-muted'}">
+                <span>Followers (${compactNum(u.followers)})</span>
+                ${state.followListType === 'followers' ? `<div class="absolute bottom-0 inset-x-0 h-[4px] rounded-full" style="background-color:var(--accent)"></div>` : ''}
+              </div>
+            </button>
+            <button onclick="state.followListType='following'; renderCenterColumn()" class="tw-row-hover flex items-center justify-center">
+              <div class="h-full flex items-center relative ${state.followListType === 'following' ? 'font-bold tw-text' : 'tw-muted'}">
+                <span>Following (${exactNum(getFollowingCount(u.handle))})</span>
+                ${state.followListType === 'following' ? `<div class="absolute bottom-0 inset-x-0 h-[4px] rounded-full" style="background-color:var(--accent)"></div>` : ''}
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <div class="divide-y tw-border">
+          ${list.map(acc => renderUserCompactRow(acc, true)).join('')}
+        </div>
+      `;
+    }
+
+    /* ==========================================================================
+       11. MESSAGES (DMs) — AUTHENTIC 2-COLUMN SPLIT PANE + PINNED BRIEF
+       ========================================================================== */
+    function renderMessagesView() {
+      const threads = Object.values(state.dmThreads);
+      const activeThread = state.dmThreads[state.activeDmHandle] || state.dmThreads.Tweet;
+      const partner = state.users[activeThread.handle] || state.users.Tweet;
+
+      return `
+        <div class="flex h-screen overflow-hidden">
+          <!-- Left Inbox Column (380px on desktop, full width on mobile when list open) -->
+          <div class="${state.mobileDmListOpen ? 'flex' : 'hidden md:flex'} w-full md:w-[380px] shrink-0 border-r tw-border flex-col h-full">
+            <div class="h-[53px] px-4 flex items-center justify-between border-b tw-border shrink-0">
+              <h1 class="font-bold text-[20px]">Messages</h1>
+              <span class="text-[13px] tw-muted">@skwasim</span>
+            </div>
+
+            <div class="flex-1 overflow-y-auto divide-y tw-border">
+              ${threads.map(th => {
+                const u = state.users[th.handle] || state.users.Tweet;
+                const lastMsg = th.messages[th.messages.length - 1];
+                const isSelected = th.handle === state.activeDmHandle;
+                return `
+                  <div
+                    onclick="selectDmThread('${th.handle}')"
+                    class="px-4 py-3.5 tw-row-hover cursor-pointer flex items-start gap-3 ${isSelected ? 'tw-bg-secondary border-r-2 border-r-[var(--accent)]' : ''}"
+                  >
+                    ${renderAvatar(u.handle, 'w-10 h-10', 'text-sm', false)}
+                    <div class="flex-1 min-w-0 leading-5">
+                      <div class="flex items-center justify-between gap-1">
+                        <div class="flex items-center gap-1 min-w-0 truncate">
+                          <span class="font-bold text-[15px] truncate">${esc(u.name)}</span>
+                          ${renderBadges(u)}
+                          <span class="text-[14px] tw-muted truncate">@${u.handle}</span>
+                        </div>
+                        <div class="flex items-center gap-1.5 shrink-0 text-[13px] tw-muted">
+                          ${th.pinned ? `<span title="Pinned conversation">${SVG.pin}</span>` : ''}
+                          <span>${esc(th.lastTime)}</span>
+                        </div>
+                      </div>
+                      <div class="text-[14px] ${th.unread ? 'font-bold tw-text' : 'tw-muted'} truncate mt-0.5">
+                        ${esc(lastMsg ? lastMsg.text.replace(/\*\*/g, '') : '')}
+                      </div>
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+
+          <!-- Right Conversation Pane -->
+          <div class="${state.mobileDmListOpen ? 'hidden md:flex' : 'flex'} flex-1 flex-col h-full min-w-0">
+            <!-- Conversation Header -->
+            <div class="h-[53px] px-4 border-b tw-border flex items-center justify-between shrink-0">
+              <div class="flex items-center gap-3 min-w-0">
+                <button onclick="state.mobileDmListOpen=true; renderCenterColumn()" class="md:hidden p-1.5 -ml-1.5 rounded-full tw-pill-hover">${SVG.backArrow}</button>
+                <div onclick="openProfile('${partner.handle}')" class="flex items-center gap-2.5 cursor-pointer min-w-0">
+                  ${renderAvatar(partner.handle, 'w-8 h-8', 'text-xs', false)}
+                  <div class="leading-4 min-w-0">
+                    <div class="flex items-center gap-1 font-bold text-[16px] truncate">
+                      <span>${esc(partner.name)}</span>
+                      ${renderBadges(partner)}
+                    </div>
+                    <div class="text-[13px] tw-muted">@${partner.handle}</div>
+                  </div>
+                </div>
+              </div>
+              ${activeThread.pinned ? `<span class="text-[12px] font-bold tw-accent flex items-center gap-1">${SVG.pin} Pinned Executive Brief</span>` : ''}
+            </div>
+
+            <!-- Messages Scroll Container -->
+            <div id="dm-scroll-box" class="flex-1 overflow-y-auto p-4 space-y-4">
+              <!-- Mini Profile Card at top of DM -->
+              <div onclick="openProfile('${partner.handle}')" class="pb-4 mb-2 border-b tw-border text-center cursor-pointer tw-row-hover rounded-xl p-3">
+                <div class="flex justify-center mb-2">${renderAvatar(partner.handle, 'w-14 h-14', 'text-lg', false)}</div>
+                <div class="font-bold text-[16px] flex items-center justify-center gap-1">
+                  <span>${esc(partner.name)}</span>
+                  ${renderBadges(partner)}
+                </div>
+                <div class="text-[14px] tw-muted">@${partner.handle}</div>
+                <div class="text-[14px] mt-1 max-w-md mx-auto">${esc(partner.bio)}</div>
+              </div>
+
+              ${activeThread.messages.map(m => {
+                const isMe = m.sender === 'skwasim';
+                return `
+                  <div class="flex flex-col ${isMe ? 'items-end' : 'items-start'}">
+                    <div class="max-w-[88%] rounded-2xl px-4 py-3 text-[15px] leading-5 ${isMe ? 'tw-btn-primary rounded-br-sm' : 'tw-bg-secondary border tw-border tw-text rounded-bl-sm'}">
+                      <div>${linkifyText(m.text)}</div>
+
+                      ${m.briefItems ? `
+                        <div class="mt-3 space-y-2.5">
+                          ${m.briefItems.map(item => `
+                            <div class="p-3 rounded-xl tw-bg border tw-border space-y-1.5">
+                              <div class="text-[11px] font-bold tracking-wide tw-accent">${esc(item.tag)}</div>
+                              <div class="font-bold text-[15px] tw-text">${esc(item.title)}</div>
+                              <div class="text-[14px] tw-muted leading-5">"${esc(item.draft)}"</div>
+                              <div class="pt-1.5">
+                                <button
+                                  onclick="loadBriefItemIntoComposer('${item.id}')"
+                                  class="h-[32px] px-3.5 rounded-full tw-btn-primary font-bold text-[13px]"
+                                >
+                                  Load into Composer
+                                </button>
+                              </div>
+                            </div>
+                          `).join('')}
+                        </div>
+                      ` : ''}
+                    </div>
+                    <span class="text-[12px] tw-muted mt-1 px-1">${esc(m.time)}</span>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+
+            <!-- Message Composer Input -->
+            <div class="p-3 border-t tw-border flex items-center gap-2 shrink-0 tw-bg">
+              <input
+                id="dm-chat-input"
+                type="text"
+                placeholder="Start a new message"
+                onkeydown="if(event.key==='Enter'){sendDmMessage()}"
+                class="flex-1 h-[40px] px-4 rounded-full tw-bg-search border border-transparent focus:border-[var(--accent)] text-[15px] tw-text placeholder:tw-muted"
+              />
+              <button onclick="sendDmMessage()" class="h-[40px] px-4 rounded-full tw-btn-primary font-bold text-[14px]">
+                Send
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function selectDmThread(handle) {
+      state.activeDmHandle = handle;
+      state.mobileDmListOpen = false;
+      if (state.dmThreads[handle]) state.dmThreads[handle].unread = 0;
+      saveState();
+      renderNavigation();
+      renderCenterColumn();
+    }
+
+    function openDmConversation(handle) {
+      if (!state.dmThreads[handle]) {
+        state.dmThreads[handle] = {
+          handle,
+          pinned: false,
+          unread: 0,
+          lastTime: 'Now',
+          messages: []
+        };
+      }
+      state.activeDmHandle = handle;
+      state.mobileDmListOpen = false;
+      navigate('messages');
+    }
+
+    function loadBriefItemIntoComposer(briefId) {
+      const msg = state.dmThreads.Tweet.messages[0];
+      const item = msg.briefItems.find(b => b.id === briefId);
+      if (!item) return;
+      state.composerDraftImage = item.imageUrl || null;
+      state.composerDraftPoll = item.poll ? [...item.poll] : null;
+      openComposeModal(item.draft);
+    }
+
+    async function sendDmMessage() {
+      const input = document.getElementById('dm-chat-input');
+      if (!input) return;
+      const text = input.value.trim();
+      if (!text) return;
+
+      const handle = state.activeDmHandle;
+      const th = state.dmThreads[handle];
+      th.messages.push({
+        id: 'dm-' + Date.now(),
+        sender: 'skwasim',
+        time: 'Just now',
+        text
+      });
+      th.lastTime = 'Just now';
+      input.value = '';
+      saveState();
+      renderCenterColumn();
+
+      const partner = state.users[handle] || state.users.Tweet;
+      setTimeout(async () => {
+        const reply = await callKeylessAI(
+          `You are ${partner.name} (@${partner.handle}) in a direct message with Tweet CEO Sk Wasim (@skwasim). Reply naturally in 1-2 short sentences.`,
+          text,
+          () => `Sounds good @skwasim — let’s sync on this later today.`
+        );
+        th.messages.push({
+          id: 'dm-' + Date.now(),
+          sender: handle,
+          time: 'Just now',
+          text: reply
+        });
+        saveState();
+        if (state.view === 'messages') renderCenterColumn();
+      }, 1800);
+    }
+
+    /* ==========================================================================
+       12. WASIMAI (GROK EQUIVALENT) VIEW
+       ========================================================================== */
+    function renderWasimAiView() {
+      return `
+        <div class="flex flex-col min-h-screen">
+          <!-- Sticky Top Header with Regular / Fun Mode Toggle -->
+          <div class="sticky top-0 z-20 tw-sticky-header h-[53px] px-4 border-b tw-border flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="font-bold text-[20px]">WasimAI</span>
+              <span class="text-[13px] tw-muted">2.5</span>
+            </div>
+
+            <div class="flex items-center p-0.5 rounded-full tw-bg-search border tw-border text-[13px]">
+              <button
+                onclick="state.wasimAiMode='regular'; saveState(); renderCenterColumn()"
+                class="px-3 py-1 rounded-full font-bold transition-colors ${state.wasimAiMode === 'regular' ? 'tw-bg tw-text shadow-sm' : 'tw-muted'}"
+              >
+                Regular
+              </button>
+              <button
+                onclick="state.wasimAiMode='fun'; saveState(); renderCenterColumn()"
+                class="px-3 py-1 rounded-full font-bold transition-colors ${state.wasimAiMode === 'fun' ? 'tw-btn-primary' : 'tw-muted'}"
+              >
+                Fun mode
+              </button>
+            </div>
+          </div>
+
+          <!-- Prompt Suggestions -->
+          <div class="p-4 border-b tw-border grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <button onclick="sendWasimAiPrompt('Summarize what Tweet’s 300M users are talking about right now')" class="p-3 rounded-xl border tw-border tw-row-hover text-left">
+              <div class="font-bold text-[14px]">Summarize 300M Firehose</div>
+              <div class="text-[13px] tw-muted">Real-time pulse across Tweet</div>
+            </button>
+            <button onclick="sendWasimAiPrompt('Draft a banger tweet for my 138.4M followers')" class="p-3 rounded-xl border tw-border tw-row-hover text-left">
+              <div class="font-bold text-[14px]">Draft CEO Banger</div>
+              <div class="text-[13px] tw-muted">Tailored for @skwasim’s 138.4M audience</div>
+            </button>
+          </div>
+
+          <!-- Conversation Stream -->
+          <div class="flex-1 p-4 space-y-4">
+            ${state.wasimAiMessages.map(m => `
+              <div class="flex gap-3 ${m.role === 'user' ? 'justify-end' : 'justify-start'}">
+                ${m.role === 'assistant' ? renderAvatar('WasimAI', 'w-8 h-8', 'text-xs', false) : ''}
+                <div class="max-w-[85%] rounded-2xl px-4 py-3 text-[15px] leading-5 ${m.role === 'user' ? 'tw-btn-primary' : 'tw-bg-secondary border tw-border tw-text'}">
+                  <div>${linkifyText(m.text)}</div>
+                  ${m.role === 'assistant' ? `
+                    <div class="mt-3 pt-2 border-t tw-border flex justify-end">
+                      <button
+                        onclick="openComposeModal(${JSON.stringify(m.text.replace(/\*\*/g, ''))})"
+                        class="text-[13px] font-bold tw-accent hover:underline"
+                      >
+                        Share as Tweet →
+                      </button>
+                    </div>
+                  ` : ''}
+                </div>
+              </div>
+            `).join('')}
+          </div>
+
+          <!-- Input Bar -->
+          <div class="sticky bottom-14 sm:bottom-0 p-3 border-t tw-border tw-bg flex items-center gap-2">
+            <input
+              id="wasimai-prompt-input"
+              type="text"
+              placeholder="Ask WasimAI anything..."
+              onkeydown="if(event.key==='Enter'){sendWasimAiPrompt()}"
+              class="flex-1 h-[42px] px-4 rounded-full tw-bg-search border border-transparent focus:border-[var(--accent)] text-[15px] tw-text placeholder:tw-muted"
+            />
+            <button onclick="sendWasimAiPrompt()" class="h-[42px] px-5 rounded-full tw-btn-primary font-bold text-[15px]">
+              Ask
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    async function sendWasimAiPrompt(preset) {
+      const input = document.getElementById('wasimai-prompt-input');
+      const prompt = preset || (input ? input.value.trim() : '');
+      if (!prompt) return;
+      if (input) input.value = '';
+
+      state.wasimAiMessages.push({ role: 'user', text: prompt });
+      state.wasimAiMessages.push({ role: 'assistant', text: 'Analyzing real-time Tweet firehose...' });
+      renderCenterColumn();
+
+      const style = state.wasimAiMode === 'fun'
+        ? 'witty, sharp, slightly unhinged, zero corporate speak'
+        : 'clear, analytical, direct';
+
+      const ans = await callKeylessAI(
+        `You are WasimAI 2.5 on Tweet (300M users), created by Sk Wasim (@skwasim). Tone: ${style}. Keep under 85 words.`,
+        prompt,
+        () => `Across Tweet’s 300,000,000 active users right now:\n\n1. **@skwasim** passing 138.4M followers is the #1 global topic.\n2. Engineers are benchmarking **WasimAI 2.5** against legacy models.\n3. Creators are posting their doubled ad-revenue payouts.`
+      );
+
+      state.wasimAiMessages[state.wasimAiMessages.length - 1].text = ans;
+      saveState();
+      if (state.view === 'wasimai') renderCenterColumn();
+    }
+
+    /* ==========================================================================
+       13. EXPLORE, NOTIFICATIONS, BOOKMARKS & MONETIZATION VIEWS
+       ========================================================================== */
+    function renderExploreView() {
+      const q = state.searchQuery.toLowerCase();
+      const results = q
+        ? state.tweets.filter(t => t.text.toLowerCase().includes(q) || t.author.toLowerCase().includes(q))
+        : state.tweets;
+
+      return `
+        <div class="sticky top-0 z-20 tw-sticky-header px-4 py-2 border-b tw-border flex items-center gap-3">
+          <div class="relative flex-1 flex items-center h-[40px] rounded-full tw-bg-search border border-transparent focus-within:border-[var(--accent)] focus-within:bg-[var(--bg)]">
+            <input
+              type="text"
+              value="${esc(state.searchQuery)}"
+              placeholder="Search Tweet"
+              oninput="state.searchQuery=this.value; renderCenterColumn()"
+              class="w-full bg-transparent px-4 text-[15px] tw-text placeholder:tw-muted"
+            />
+            ${state.searchQuery ? `<button onclick="state.searchQuery=''; renderCenterColumn()" class="mr-3 text-xs tw-muted">✕</button>` : ''}
+          </div>
+        </div>
+
+        ${!state.searchQuery ? `
+          <div class="divide-y tw-border border-b tw-border">
+            ${state.trends.map((t, idx) => `
+              <div onclick="runSearch('${t.query}')" class="px-4 py-3 tw-row-hover cursor-pointer">
+                <div class="text-[13px] tw-muted">${idx + 1} · ${esc(t.category)}</div>
+                <div class="font-bold text-[15px] mt-0.5">${esc(t.topic)}</div>
+                <div class="text-[13px] tw-muted mt-0.5">${esc(t.posts)}</div>
+              </div>
+            `).join('')}
+          </div>
+        ` : ''}
+
+        <div class="divide-y tw-border">
+          ${results.map(t => renderTweetRow(t)).join('')}
+        </div>
+      `;
+    }
+
+    function renderNotificationsView() {
+      const filtered = state.notifTab === 'mentions'
+        ? state.notifications.filter(n => n.type === 'reply' || n.type === 'mention')
+        : state.notifications;
+
+      return `
+        <div class="sticky top-0 z-20 tw-sticky-header border-b tw-border">
+          <div class="h-[53px] px-4 flex items-center justify-between">
+            <h1 class="font-bold text-[20px]">Notifications</h1>
+          </div>
+          <div class="grid grid-cols-3 h-[53px] text-[15px]">
+            ${[
+              { id: 'all', label: 'All' },
+              { id: 'verified', label: 'Verified' },
+              { id: 'mentions', label: 'Mentions' }
+            ].map(tab => `
+              <button onclick="state.notifTab='${tab.id}'; renderCenterColumn()" class="tw-row-hover flex items-center justify-center relative">
+                <div class="h-full flex items-center relative ${state.notifTab === tab.id ? 'font-bold tw-text' : 'tw-muted'}">
+                  <span>${tab.label}</span>
+                  ${state.notifTab === tab.id ? `<div class="absolute bottom-0 inset-x-0 h-[4px] rounded-full" style="background-color:var(--accent)"></div>` : ''}
+                </div>
+              </button>
+            `).join('')}
+          </div>
+        </div>
+
+        <div class="divide-y tw-border">
+          ${filtered.map(n => {
+            if (n.type === 'reply' || n.type === 'mention') {
+              const actor = state.users[n.actors[0]] || state.users.paulg;
+              return `
+                <div onclick="${n.tweetId ? `openThread('${n.tweetId}')` : `openProfile('${actor.handle}')`}" class="px-4 py-3 tw-row-hover cursor-pointer flex gap-3">
+                  ${renderAvatar(actor.handle, 'w-10 h-10', 'text-sm')}
+                  <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-1 text-[15px] leading-5">
+                      <span class="font-bold">${esc(actor.name)}</span>
+                      ${renderBadges(actor)}
+                      <span class="tw-muted">@${actor.handle} · ${esc(n.time)}</span>
+                    </div>
+                    <div class="text-[13px] tw-muted">Replying to <span class="tw-accent">@skwasim</span></div>
+                    <div class="text-[15px] leading-5 mt-1">${linkifyText(n.text)}</div>
+                  </div>
+                </div>
+              `;
+            }
+
+            const iconHtml = n.type === 'like'
+              ? `<div class="w-8 flex justify-end text-[#f91880]">${SVG.likeSolid}</div>`
+              : n.type === 'retweet'
+              ? `<div class="w-8 flex justify-end text-[#00ba7c]">${SVG.retweet}</div>`
+              : `<div class="w-8 flex justify-end tw-accent">${SVG.bird}</div>`;
+
+            const leadActor = state.users[n.actors[0]] || state.users.karpathy;
+            const actionLabel = n.type === 'like'
+              ? 'liked your Tweet'
+              : n.type === 'retweet'
+              ? 'retweeted your Tweet'
+              : 'followed you';
+
+            return `
+              <div onclick="${n.tweetId ? `openThread('${n.tweetId}')` : `openProfile('${leadActor.handle}')`}" class="px-4 py-3 tw-row-hover cursor-pointer flex gap-3">
+                ${iconHtml}
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center gap-1.5 mb-1.5">
+                    ${n.actors.map(h => renderAvatar(h, 'w-8 h-8', 'text-xs')).join('')}
+                  </div>
+                  <div class="text-[15px] leading-5">
+                    <span class="font-bold">${esc(leadActor.name)}</span>
+                    ${n.extraCount ? `<span class="tw-muted"> and ${compactNum(n.extraCount)} others</span>` : ''}
+                    <span> ${actionLabel}</span>
+                  </div>
+                  ${n.tweetId ? `<div class="text-[15px] tw-muted mt-1 line-clamp-2">${esc(n.text)}</div>` : ''}
+                </div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `;
+    }
+
+    function renderBookmarksView() {
+      const list = state.tweets.filter(t => t.bookmarked);
+      return `
+        <div class="sticky top-0 z-20 tw-sticky-header h-[53px] px-4 flex flex-col justify-center border-b tw-border">
+          <h1 class="font-bold text-[20px] leading-6">Bookmarks</h1>
+          <div class="text-[13px] tw-muted">@skwasim</div>
+        </div>
+        ${list.length === 0 ? `
+          <div class="py-16 px-8 text-center">
+            <div class="font-extrabold text-[28px] leading-8">Save Tweets for later</div>
+            <p class="text-[15px] tw-muted mt-2">Don’t let the good ones fly away! Bookmark Tweets to easily find them again in the future.</p>
+          </div>
+        ` : `<div class="divide-y tw-border">${list.map(t => renderTweetRow(t)).join('')}</div>`}
+      `;
+    }
+
+    function renderMonetizationView() {
+      return `
+        <div class="sticky top-0 z-20 tw-sticky-header h-[53px] px-4 flex items-center justify-between border-b tw-border">
+          <div>
+            <h1 class="font-bold text-[20px] leading-6">Monetization & Company Metrics</h1>
+          </div>
+          <span class="text-[13px] tw-muted">@skwasim</span>
+        </div>
+
+        <div class="divide-y tw-border">
+          <!-- Creator Ad Revenue Balance -->
+          <div class="p-4 flex items-center justify-between gap-4">
+            <div>
+              <div class="text-[13px] tw-muted font-medium">Available Creator Revenue Share</div>
+              <div class="text-[32px] font-extrabold leading-10 mt-1 tabular-nums">$${state.creatorBalance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+              <div class="text-[13px] tw-muted mt-1">Verified impressions RPM: $18.40 · Account @skwasim (138.4M followers)</div>
+            </div>
+            <button onclick="withdrawCreatorBalance()" class="h-[40px] px-5 rounded-full tw-btn-primary font-bold text-[15px] shrink-0">
+              Transfer now
+            </button>
+          </div>
+
+          <!-- Platform-Wide Metrics Row (Clean Hairline Grid) -->
+          <div class="grid grid-cols-3 divide-x tw-border text-center py-4">
+            <div class="px-2">
+              <div class="text-[13px] tw-muted">Monthly Active Users</div>
+              <div class="text-[20px] font-extrabold mt-1 tabular-nums">${exactNum(state.platformUsers)}</div>
+            </div>
+            <div class="px-2">
+              <div class="text-[13px] tw-muted">@skwasim Followers</div>
+              <div class="text-[20px] font-extrabold mt-1 tabular-nums">${exactNum(state.users.skwasim.followers)}</div>
+            </div>
+            <div class="px-2">
+              <div class="text-[13px] tw-muted">28d Impressions</div>
+              <div class="text-[20px] font-extrabold mt-1 tabular-nums">1.48B</div>
+            </div>
+          </div>
+
+          <!-- Payout History -->
+          <div>
+            <div class="px-4 py-3 font-bold text-[17px] border-b tw-border">Payout History</div>
+            <div class="divide-y tw-border">
+              ${state.payouts.map(p => `
+                <div class="px-4 py-3 flex items-center justify-between text-[15px]">
+                  <div>
+                    <div class="font-bold">${esc(p.amount)}</div>
+                    <div class="text-[13px] tw-muted">${esc(p.date)} · ${esc(p.id)}</div>
+                  </div>
+                  <span class="text-[13px] font-bold text-[#00ba7c]">${esc(p.status)}</span>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function withdrawCreatorBalance() {
+      if (state.creatorBalance <= 0) {
+        toast('No balance to transfer right now.');
+        return;
+      }
+      const amt = '$' + state.creatorBalance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      state.payouts.unshift({
+        id: 'TW-' + Math.floor(10000 + Math.random() * 89999),
+        date: 'Nov 15, 2026',
+        amount: amt,
+        status: 'Deposited'
+      });
+      state.creatorBalance = 0;
+      saveState();
+      renderCenterColumn();
+      toast(`Transferred ${amt} to your connected account.`);
+    }
+
+    /* ==========================================================================
+       14. MODALS (COMPOSE, REPLY, QUOTE, DISPLAY SETTINGS, EDIT PROFILE, ANALYTICS)
+       ========================================================================== */
+    function openModal(html) {
+      const root = document.getElementById('modal-root');
+      const box = document.getElementById('modal-box');
+      if (!root || !box) return;
+      box.innerHTML = html;
+      root.classList.remove('hidden');
+      root.classList.add('flex');
+    }
+
+    function closeModal() {
+      const root = document.getElementById('modal-root');
+      if (!root) return;
+      root.classList.add('hidden');
+      root.classList.remove('flex');
+    }
+
+    function openComposeModal(prefill = '') {
+      openModal(`
+        <div class="h-[53px] px-4 flex items-center justify-between border-b tw-border">
+          <button onclick="closeModal()" class="p-2 -ml-2 rounded-full tw-pill-hover font-bold">✕</button>
+          <span class="text-[14px] font-bold tw-accent">Drafts</span>
+        </div>
+        <div class="p-1">
+          ${renderComposerMarkup('modal', prefill)}
+        </div>
+      `);
+      const el = document.getElementById('modal-composer-textarea');
+      if (el) {
+        handleComposerInput('modal-composer-textarea', 'modal-char-ring', 'modal-char-count', 'modal-tweet-btn');
+        el.focus();
+      }
+    }
+
+    function openQuoteModal(tweetId) {
+      state.composerQuoteId = tweetId;
+      openComposeModal('');
+    }
+
+    function openReplyModal(tweetId) {
+      const t = state.tweets.find(x => x.id === tweetId);
+      if (!t) return;
+      const author = state.users[t.author] || state.users.skwasim;
+      openModal(`
+        <div class="h-[53px] px-4 flex items-center justify-between border-b tw-border">
+          <button onclick="closeModal()" class="p-2 -ml-2 rounded-full tw-pill-hover font-bold">✕</button>
+        </div>
+        <div class="px-4 py-3">
+          <div class="flex gap-3">
+            <div class="flex flex-col items-center">
+              ${renderAvatar(author.handle, 'w-10 h-10', 'text-sm', false)}
+              <div class="w-[2px] flex-1 my-1" style="background-color:var(--border)"></div>
+            </div>
+            <div class="flex-1 min-w-0 pb-4">
+              <div class="flex items-center gap-1 text-[15px]">
+                <span class="font-bold">${esc(author.name)}</span>
+                ${renderBadges(author)}
+                <span class="tw-muted">@${author.handle} · ${esc(t.time)}</span>
+              </div>
+              <div class="text-[15px] mt-1">${linkifyText(t.text)}</div>
+              <div class="text-[14px] tw-muted mt-3">Replying to <span class="tw-accent">@${author.handle}</span></div>
+            </div>
+          </div>
+
+          <div class="flex gap-3">
+            ${renderAvatar('skwasim', 'w-10 h-10', 'text-sm', false)}
+            <div class="flex-1">
+              <textarea id="quick-reply-textarea" rows="3" placeholder="Post your reply" class="w-full bg-transparent text-[18px] tw-text placeholder:tw-muted resize-none"></textarea>
+              <div class="flex justify-end pt-2">
+                <button onclick="submitQuickReplyModal('${t.id}')" class="h-[36px] px-4 rounded-full tw-btn-primary font-bold text-[15px]">Reply</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `);
+      document.getElementById('quick-reply-textarea')?.focus();
+    }
+
+    function submitQuickReplyModal(tweetId) {
+      const t = state.tweets.find(x => x.id === tweetId);
+      const el = document.getElementById('quick-reply-textarea');
+      if (!t || !el || !el.value.trim()) return;
+      t.replies.unshift({
+        id: 'rep-' + Date.now(),
+        author: 'skwasim',
+        text: el.value.trim(),
+        time: 'Just now',
+        likes: 410,
+        retweets: 35,
+        views: 12900,
+        liked: false
+      });
+      closeModal();
+      openThread(tweetId);
+      toast('Your reply was sent.');
+      scheduleCrowdRepliesToTweet(t, t.author !== 'skwasim' ? t.author : 'paulg');
+    }
+
+    function openDisplayModal() {
+      const accents = [
+        { color: '#1d9bf0', name: 'Sky Blue' },
+        { color: '#ffd400', name: 'Gold' },
+        { color: '#f91880', name: 'Crimson' },
+        { color: '#7856ff', name: 'Purple' },
+        { color: '#00ba7c', name: 'Emerald' }
+      ];
+      openModal(`
+        <div class="p-6 space-y-6">
+          <div class="text-center">
+            <h2 class="font-extrabold text-[23px] leading-7">Customize your view</h2>
+            <p class="text-[15px] tw-muted mt-1">These settings affect all the Tweet accounts on this browser.</p>
+          </div>
+
+          <!-- Sample Tweet Preview -->
+          <div class="p-4 rounded-2xl border tw-border flex gap-3">
+            ${renderAvatar('skwasim', 'w-10 h-10', 'text-sm', false)}
+            <div class="flex-1 text-[15px]">
+              <div class="flex items-center gap-1 font-bold">
+                <span>Sk Wasim</span>
+                ${renderBadges(state.users.skwasim)}
+                <span class="font-normal tw-muted">@skwasim · 12m</span>
+              </div>
+              <div class="mt-1">At the heart of <span class="tw-accent">@Tweet</span> are short messages called Tweets — shared by 300M+ people in real time.</div>
+            </div>
+          </div>
+
+          <!-- Color Picker -->
+          <div>
+            <div class="text-[13px] font-bold tw-muted mb-2">Color</div>
+            <div class="p-3 rounded-2xl tw-bg-secondary flex items-center justify-around">
+              ${accents.map(a => `
+                <button
+                  onclick="state.accent='${a.color}'; applyThemeAndAccent(); saveState(); openDisplayModal(); renderAll();"
+                  class="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold"
+                  style="background-color:${a.color}"
+                >
+                  ${state.accent === a.color ? '✓' : ''}
+                </button>
+              `).join('')}
+            </div>
+          </div>
+
+          <!-- Background Mode Picker -->
+          <div>
+            <div class="text-[13px] font-bold tw-muted mb-2">Background</div>
+            <div class="grid grid-cols-3 gap-3">
+              ${[
+                { id: 'bright', label: 'Default', bg: '#ffffff', fg: '#0f1419', border: '#cfd9de' },
+                { id: 'dim', label: 'Dim', bg: '#15202b', fg: '#f7f9f9', border: '#38444d' },
+                { id: 'lights-out', label: 'Lights out', bg: '#000000', fg: '#e7e9ea', border: '#2f3336' }
+              ].map(m => `
+                <button
+                  onclick="state.theme='${m.id}'; applyThemeAndAccent(); saveState(); openDisplayModal(); renderAll();"
+                  class="h-[62px] rounded-md px-3 flex items-center justify-center gap-2.5 font-bold text-[15px]"
+                  style="background-color:${m.bg}; color:${m.fg}; border: 2px solid ${state.theme === m.id ? 'var(--accent)' : m.border}"
+                >
+                  <span class="w-4 h-4 rounded-full border flex items-center justify-center text-[10px]" style="border-color:${state.theme === m.id ? 'var(--accent)' : m.border}; background-color:${state.theme === m.id ? 'var(--accent)' : 'transparent'}; color:#fff">
+                    ${state.theme === m.id ? '✓' : ''}
+                  </span>
+                  <span>${m.label}</span>
+                </button>
+              `).join('')}
+            </div>
+          </div>
+
+          <div class="flex justify-center pt-2">
+            <button onclick="closeModal()" class="h-[36px] px-6 rounded-full tw-btn-primary font-bold text-[15px]">Done</button>
+          </div>
+        </div>
+      `);
+    }
+
+    function openEditProfileModal() {
+      const u = state.users.skwasim;
+      openModal(`
+        <div class="h-[53px] px-4 flex items-center justify-between border-b tw-border">
+          <div class="flex items-center gap-5">
+            <button onclick="closeModal()" class="p-2 -ml-2 rounded-full tw-pill-hover font-bold">✕</button>
+            <h2 class="font-bold text-[20px]">Edit profile</h2>
+          </div>
+          <button onclick="saveProfileModal()" class="h-[32px] px-4 rounded-full tw-btn-inverse font-bold text-[14px]">Save</button>
+        </div>
+        <div class="p-4 space-y-4">
+          <div class="border tw-border rounded-md px-3 py-2">
+            <label class="block text-[13px] tw-muted">Name</label>
+            <input id="ep-name" type="text" value="${esc(u.name)}" class="w-full bg-transparent text-[17px] tw-text mt-0.5"/>
+          </div>
+          <div class="border tw-border rounded-md px-3 py-2">
+            <label class="block text-[13px] tw-muted">Bio</label>
+            <textarea id="ep-bio" rows="3" class="w-full bg-transparent text-[15px] tw-text mt-0.5 resize-none">${esc(u.bio)}</textarea>
+          </div>
+          <div class="border tw-border rounded-md px-3 py-2">
+            <label class="block text-[13px] tw-muted">Location</label>
+            <input id="ep-loc" type="text" value="${esc(u.location)}" class="w-full bg-transparent text-[15px] tw-text mt-0.5"/>
+          </div>
+          <div class="border tw-border rounded-md px-3 py-2">
+            <label class="block text-[13px] tw-muted">Website</label>
+            <input id="ep-web" type="text" value="${esc(u.website)}" class="w-full bg-transparent text-[15px] tw-text mt-0.5"/>
+          </div>
+        </div>
+      `);
+    }
+
+    function saveProfileModal() {
+      const u = state.users.skwasim;
+      u.name = document.getElementById('ep-name')?.value.trim() || u.name;
+      u.bio = document.getElementById('ep-bio')?.value.trim() || u.bio;
+      u.location = document.getElementById('ep-loc')?.value.trim() || u.location;
+      u.website = document.getElementById('ep-web')?.value.trim() || u.website;
+      saveState();
+      closeModal();
+      renderAll();
+      toast('Profile saved');
+    }
+
+    function openAnalyticsModal(tweetId) {
+      const t = state.tweets.find(x => x.id === tweetId);
+      if (!t) return;
+      openModal(`
+        <div class="h-[53px] px-4 flex items-center justify-between border-b tw-border">
+          <div class="flex items-center gap-5">
+            <button onclick="closeModal()" class="p-2 -ml-2 rounded-full tw-pill-hover font-bold">✕</button>
+            <h2 class="font-bold text-[20px]">Tweet Analytics</h2>
+          </div>
+        </div>
+        <div class="p-4 space-y-4">
+          <div class="p-3 rounded-xl border tw-border text-[15px]">${linkifyText(t.text)}</div>
+          <div class="grid grid-cols-3 gap-3 text-center">
+            <div class="p-3 rounded-xl tw-bg-secondary border tw-border">
+              <div class="text-[13px] tw-muted">Impressions</div>
+              <div class="font-extrabold text-[20px] mt-1">${compactNum(t.views)}</div>
+            </div>
+            <div class="p-3 rounded-xl tw-bg-secondary border tw-border">
+              <div class="text-[13px] tw-muted">Engagements</div>
+              <div class="font-extrabold text-[20px] mt-1">${compactNum(t.likes + t.retweets + t.bookmarks)}</div>
+            </div>
+            <div class="p-3 rounded-xl tw-bg-secondary border tw-border">
+              <div class="text-[13px] tw-muted">Profile visits</div>
+              <div class="font-extrabold text-[20px] mt-1">${compactNum(Math.floor(t.views * 0.031))}</div>
+            </div>
+          </div>
+        </div>
+      `);
+    }
+
+    /* ==========================================================================
+       15. MASTER RENDERER & REAL-TIME TIMELINE QUEUE
+       ========================================================================== */
+    function renderCenterColumn() {
+      const center = document.getElementById('center-column');
+      if (!center) return;
+
+      switch (state.view) {
+        case 'home':
+          center.innerHTML = renderHomeView();
+          break;
+        case 'thread':
+          center.innerHTML = renderThreadView();
+          break;
+        case 'profile':
+          center.innerHTML = renderProfileView();
+          break;
+        case 'follow-list':
+          center.innerHTML = renderFollowListView();
+          break;
+        case 'messages':
+          center.innerHTML = renderMessagesView();
+          break;
+        case 'wasimai':
+          center.innerHTML = renderWasimAiView();
+          break;
+        case 'explore':
+          center.innerHTML = renderExploreView();
+          break;
+        case 'notifications':
+          center.innerHTML = renderNotificationsView();
+          break;
+        case 'bookmarks':
+          center.innerHTML = renderBookmarksView();
+          break;
+        case 'monetization':
+          center.innerHTML = renderMonetizationView();
+          break;
+        default:
+          center.innerHTML = renderHomeView();
+      }
+    }
+
+    function renderAll() {
+      renderNavigation();
+      renderRightColumn();
+      renderCenterColumn();
+    }
+
+    function flushQueuedTweets() {
+      if (!state.queuedNewTweets.length) return;
+      state.tweets.unshift(...state.queuedNewTweets);
+      state.queuedNewTweets = [];
+      saveState();
+      renderCenterColumn();
+    }
+
+    /* Background Live Activity Queue (Non-disruptive "Show X Tweets" bar) */
+    function startLiveSimulator() {
+      setInterval(async () => {
+        state.users.skwasim.followers += Math.floor(25 + Math.random() * 110);
+        state.platformUsers += Math.floor(80 + Math.random() * 340);
+
+        if (state.queuedNewTweets.length < 4 && Math.random() < 0.45) {
+          const pool = ['paulg', 'karpathy', 'mkbhd', 'sama', 'levelsio', 'garrytan', 'naval'];
+          const author = pool[Math.floor(Math.random() * pool.length)];
+          const u = state.users[author];
+          const fallbacks = [
+            'The timeline speed on @Tweet since crossing 300M users is noticeably snappier.',
+            'Using @WasimAI to summarize 80-comment engineering threads in 2 seconds is a superpower.',
+            'High-signal discussions are all happening on @Tweet right now.'
+          ];
+          const text = await callKeylessAI(
+            `You are ${u.name} (@${u.handle}) on Tweet (owned by @skwasim, 300M users). Write a realistic 1-sentence tweet in character. No hashtags.`,
+            'Post a new thought to the timeline.',
+            () => fallbacks[Math.floor(Math.random() * fallbacks.length)]
+          );
+
+          state.queuedNewTweets.unshift({
+            id: 'tw-' + Date.now(),
+            author,
+            text,
+            time: '1m',
+            fullDate: '2:25 PM · Nov 15, 2026',
+            views: Math.floor(28000 + Math.random() * 210000),
+            likes: Math.floor(900 + Math.random() * 8200),
+            retweets: Math.floor(90 + Math.random() * 900),
+            bookmarks: Math.floor(40 + Math.random() * 450),
+            liked: false,
+            retweeted: false,
+            bookmarked: false,
+            pinned: false,
+            imageUrl: null,
+            poll: null,
+            quoteTweetId: null,
+            replies: []
+          });
+          if (state.view === 'home' && !state.composerFocused) {
+            renderCenterColumn();
+          }
+        }
+      }, 14000);
+    }
+
+    window.onload = function () {
+      applyThemeAndAccent();
+      renderAll();
+      startLiveSimulator();
+    };
+  </script>
+</body>
+</html>
